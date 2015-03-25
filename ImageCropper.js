@@ -699,4 +699,3 @@ var ImageCropper = (function () {
     };
     return ImageCropper;
 })();
-//# sourceMappingURL=ImageCropper.js.map
