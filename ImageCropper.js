@@ -263,6 +263,7 @@ var ImageCropper = (function () {
         this.isMouseDown = false;
         this.ratioW = 1;
         this.ratioH = 1;
+        this.fileType = 'png';
         CropService.init(canvas);
         this.buffer = document.createElement('canvas');
         this.cropCanvas = document.createElement('canvas');
@@ -536,6 +537,11 @@ var ImageCropper = (function () {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         var bufferContext = this.buffer.getContext('2d');
         bufferContext.clearRect(0, 0, this.buffer.width, this.buffer.height);
+        var splitName = img.src.split('.');
+        var fileType = splitName[1];
+        if (fileType == 'png' || fileType == 'jpg') {
+            this.fileType = fileType;
+        }
         this.srcImage = img;
         this.draw(this.ctx);
     };
@@ -583,7 +589,7 @@ var ImageCropper = (function () {
             this.croppedImage.width = this.cropCanvas.width;
             this.croppedImage.height = this.cropCanvas.height;
         }
-        this.croppedImage.src = this.cropCanvas.toDataURL("image/png");
+        this.croppedImage.src = this.cropCanvas.toDataURL("image/" + this.fileType);
         return this.croppedImage;
     };
     ImageCropper.prototype.getBounds = function () {
@@ -692,7 +698,5 @@ var ImageCropper = (function () {
         this.handleRelease();
     };
     return ImageCropper;
-})(); /**
- * Created by Allan on 3/25/2015.
- */
+})();
 //# sourceMappingURL=ImageCropper.js.map
