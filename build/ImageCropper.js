@@ -264,6 +264,7 @@ var ImageCropper = (function () {
         this.ratioW = 1;
         this.ratioH = 1;
         this.fileType = 'png';
+        this.imageSet = false;
         CropService.init(canvas);
         this.buffer = document.createElement('canvas');
         this.cropCanvas = document.createElement('canvas');
@@ -355,17 +356,17 @@ var ImageCropper = (function () {
         var right = x + (bounds.getWidth() / 2);
         var top = y - (bounds.getHeight() / 2);
         var bottom = y + (bounds.getHeight() / 2);
-        if (right >= this.canvas.width) {
-            x = this.canvas.width - bounds.getWidth() / 2;
+        if (right >= this.maxXClamp) {
+            x = this.maxXClamp - bounds.getWidth() / 2;
         }
-        if (left <= 0) {
-            x = bounds.getWidth() / 2;
+        if (left <= this.minXClamp) {
+            x = bounds.getWidth() / 2 + this.minXClamp;
         }
-        if (top <= 0) {
-            y = bounds.getHeight() / 2;
+        if (top < this.minYClamp) {
+            y = bounds.getHeight() / 2 + this.minYClamp;
         }
-        if (bottom >= this.canvas.height) {
-            y = this.canvas.height - bounds.getHeight() / 2;
+        if (bottom >= this.maxYClamp) {
+            y = this.maxYClamp - bounds.getHeight() / 2;
         }
         this.tl.moveX(x - (bounds.getWidth() / 2));
         this.tl.moveY(y - (bounds.getHeight() / 2));
@@ -518,22 +519,47 @@ var ImageCropper = (function () {
             }
         }
     };
+    ImageCropper.prototype.updateClampBounds = function () {
+        var sourceAspect = this.srcImage.height / this.srcImage.width;
+        var canvasAspect = this.canvas.height / this.canvas.width;
+        var w = this.canvas.width;
+        var h = this.canvas.height;
+        if (canvasAspect > sourceAspect) {
+            w = this.canvas.width;
+            h = this.canvas.width * sourceAspect;
+        }
+        else {
+            h = this.canvas.height;
+            w = this.canvas.height / sourceAspect;
+        }
+        this.minXClamp = this.canvas.width / 2 - w / 2;
+        this.minYClamp = this.canvas.height / 2 - h / 2;
+        this.maxXClamp = this.canvas.width / 2 + w / 2;
+        this.maxYClamp = this.canvas.height / 2 + h / 2;
+    };
     ImageCropper.prototype.clampPosition = function (x, y) {
-        if (x < 0) {
-            x = 0;
+        if (x < this.minXClamp) {
+            x = this.minXClamp;
         }
-        if (x > this.canvas.width) {
-            x = this.canvas.width;
+        if (x > this.maxXClamp) {
+            x = this.maxXClamp;
         }
-        if (y < 0) {
-            y = 0;
+        if (y < this.minYClamp) {
+            y = this.minYClamp;
         }
-        if (y > this.canvas.height) {
-            y = this.canvas.height;
+        if (y > this.maxYClamp) {
+            y = this.maxYClamp;
         }
-        return { x: x, y: y };
+        return new Point(x, y);
+    };
+    ImageCropper.prototype.isImageSet = function () {
+        return this.imageSet;
     };
     ImageCropper.prototype.setImage = function (img) {
+        if (!img) {
+            throw "Image is null";
+        }
+        this.imageSet = true;
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         var bufferContext = this.buffer.getContext('2d');
         bufferContext.clearRect(0, 0, this.buffer.width, this.buffer.height);
@@ -543,10 +569,58 @@ var ImageCropper = (function () {
             this.fileType = fileType;
         }
         this.srcImage = img;
+        this.updateClampBounds();
+        var sourceAspect = this.srcImage.height / this.srcImage.width;
+        var cropBounds = this.getBounds();
+        var cropAspect = cropBounds.getHeight() / cropBounds.getWidth();
+        var w = this.canvas.width;
+        var h = this.canvas.height;
+        var cX = this.canvas.width / 2;
+        var cY = this.canvas.height / 2;
+        var tlPos = new Point(cX - cropBounds.getWidth() / 2, cY + cropBounds.getHeight() / 2);
+        var trPos = new Point(cX + cropBounds.getWidth() / 2, cY + cropBounds.getHeight() / 2);
+        var blPos = new Point(cX - cropBounds.getWidth() / 2, cY - cropBounds.getHeight() / 2);
+        var brPos = new Point(cX + cropBounds.getWidth() / 2, cY - cropBounds.getHeight() / 2);
+        this.tl.setPosition(tlPos.x, tlPos.y);
+        this.tr.setPosition(trPos.x, trPos.y);
+        this.bl.setPosition(blPos.x, blPos.y);
+        this.br.setPosition(brPos.x, brPos.y);
+        this.center.setPosition(cX, cY);
+        if (cropAspect > sourceAspect) {
+            var imageH = Math.min(w * sourceAspect, h);
+            if (cropBounds.getHeight() > imageH) {
+                var cropW = imageH / cropAspect;
+                var tlPos = new Point(cX - cropW / 2, cY + imageH / 2);
+                var trPos = new Point(cX + cropW / 2, cY + imageH / 2);
+                var blPos = new Point(cX - cropW / 2, cY - imageH / 2);
+                var brPos = new Point(cX + cropW / 2, cY - imageH / 2);
+                this.tl.setPosition(tlPos.x, tlPos.y);
+                this.tr.setPosition(trPos.x, trPos.y);
+                this.bl.setPosition(blPos.x, blPos.y);
+                this.br.setPosition(brPos.x, brPos.y);
+            }
+        }
+        else if (cropAspect < sourceAspect) {
+            var imageW = Math.min(h / sourceAspect, w);
+            if (cropBounds.getWidth() > imageW) {
+                var cropH = imageW * cropAspect;
+                var tlPos = new Point(cX - imageW / 2, cY + cropH / 2);
+                var trPos = new Point(cX + imageW / 2, cY + cropH / 2);
+                var blPos = new Point(cX - imageW / 2, cY - cropH / 2);
+                var brPos = new Point(cX + imageW / 2, cY - cropH / 2);
+                this.tl.setPosition(tlPos.x, tlPos.y);
+                this.tr.setPosition(trPos.x, trPos.y);
+                this.bl.setPosition(blPos.x, blPos.y);
+                this.br.setPosition(brPos.x, brPos.y);
+            }
+        }
         this.draw(this.ctx);
     };
     ImageCropper.prototype.getCroppedImage = function (fillWidth, fillHeight) {
         var bounds = this.getBounds();
+        if (!this.srcImage) {
+            throw "Source image not set.";
+        }
         if (fillWidth && fillHeight) {
             var sourceAspect = this.srcImage.height / this.srcImage.width;
             var canvasAspect = this.canvas.height / this.canvas.width;
@@ -578,7 +652,7 @@ var ImageCropper = (function () {
             if (this.ratioH < 1) {
                 boundsMultiHeight = this.ratioH;
             }
-            this.cropCanvas.getContext('2d').drawImage(this.srcImage, (bounds.left) / this.ratioW - offsetW, (bounds.top) / this.ratioH - offsetH, Math.max(bounds.getWidth() / boundsMultiWidth, 1), Math.max(bounds.getHeight() / boundsMultiHeight, 1), 0, 0, fillWidth, fillHeight);
+            this.cropCanvas.getContext('2d').drawImage(this.srcImage, Math.max((bounds.left) / this.ratioW - offsetW, 0), Math.max((bounds.top / this.ratioH - offsetH), 0), Math.max(bounds.getWidth() / boundsMultiWidth, 1), Math.max(bounds.getHeight() / boundsMultiHeight, 1), 0, 0, fillWidth, fillHeight);
             this.croppedImage.width = fillWidth;
             this.croppedImage.height = fillHeight;
         }
@@ -699,3 +773,4 @@ var ImageCropper = (function () {
     };
     return ImageCropper;
 })();
+//# sourceMappingURL=ImageCropper.js.map

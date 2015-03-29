@@ -1,0 +1,130 @@
+# Image Cropper
+
+An HTML5 image cropping tool. Features a rectangular crop area. The crop area's aspect ratio can be enforced during dragging. The crop image can either be 1:1 or scaled to fit an area.
+
+## Screenshots
+
+![Square Crop](https://github.com/AllanBishop/ImageCropper/master/screenshots/screenshot.jpg "Screenshot")
+
+## Live demo
+
+[Live demo on JSBin](http://jsbin.com/pajiha/1/edit?html,js,output)
+
+## Requirements
+
+ - Modern Browser supporting ```<canvas>```
+
+## Installing
+
+### Download
+
+- [Download ImageCropper](https://github.com/AllanBishop/ImageCropper/archive/master.zip) files from GitHub.
+
+### Add files
+
+Add the script to your application.
+
+```html
+<script src="ImageCropper.min.js"></script>
+
+```
+
+## Public Functions
+
+### ImageCropper(canvas, x, y, width, height, keepAspect, touchRadius):void
+Constructor function that initializes the image cropper.
+| Parameter | Description |
+| ------ | ----------- |
+| canvas | The canvas element that the cropping tool will display on.|
+| x      | *Optional:* The left position of the crop area. |
+| y      | *Optional:* The top position of the crop area.|
+| width  | *Optional:* The initial width of the crop area.|
+| height | *Optional:* The initial height of the crop area. |
+| keepAspect   | *Optional:* Enforces that the aspect ratio is kept when dragging the crop area. The aspect ratio is defined by the width and height paramater. |
+| touchRadius  | *Optional:* The radius for detecting touches/clicks on the corner drag markers and the centre drag marker. |
+
+### getCroppedImage(fillWidth, fillHeight):Image
+
+Returns an image that is cropped from the source image based on the crop area. If no fillWidth and fillHeight is set the image will be a 1:1 crop. If fillWidth and fillHeight are set the cropped image will scale to fit. It is recommended to ensure the fillWidth and fillHeight are set to the same aspect ratio as the crop area to prevent distortion.
+| Parameter | Description |
+| ------ | ----------- |
+| fillWidth| *Optional:* The fill width that the cropped area will map to.|
+| fillHeight| *Optional:* The fill height that the cropped area will map to. |
+
+### setImage(image)
+
+Set the image for the image cropper.
+
+| Parameter | Description |
+| ------ | ----------- |
+| image| The image that will be used for cropping.
+
+### isImageSet():boolean
+
+Checks to see if an image has been set.
+
+## Example code
+
+The following code enables to select an image using a file input and crop it. The cropped image data is inserted into img each time the crop area updates.
+
+```<!DOCTYPE html>
+<html>
+	<head lang="en">
+		<meta charset="UTF-8">
+		<title>Image Cropper Test</title>
+	</head>
+	<body>
+		<div>
+			Select image to crop: <input type="file" id="fileInput" name="file" multiple="" />
+		</div>
+		<div>
+			<canvas id="imageCanvas" width="600" height="400" style="border:0px solid #000000;">
+			</canvas>
+		</div>
+		<div>
+		Cropped image:
+		</div>
+		<div id="preview"></div>
+		<script src="ImageCropperTest.js"></script>
+		<script src="ImageCropper.js"></script>
+	</body>
+</html>
+```
+ImageCropperTest.js
+<pre><code>var crop;
+window.onload = function () {
+    var canvas = document.getElementById("imageCanvas");
+    var width = 600;
+    var height = 300;
+    crop = new ImageCropper(canvas, canvas.width / 2 - width / 2, canvas.height / 2 - height / 2, width, height, true);
+    window.addEventListener('mouseup', preview);
+};
+function preview() {
+    if (crop.isImageSet()) {
+        var img = crop.getCroppedImage(400, 200);
+        img.onload = (function () { return previewLoaded(img); });
+    }
+}
+function previewLoaded(img) {
+    if (img) {
+        document.getElementById("preview").appendChild(img);
+    }
+}
+function handleFileSelect(evt) {
+    var file = evt.target.files[0];
+    var reader = new FileReader();
+    reader.onload = function () {
+        var img = new Image();
+        img.src = reader.result;
+        crop.setImage(img);
+        preview();
+    };
+    if (file) {
+        reader.readAsDataURL(file);
+    }
+}
+document.getElementById('fileInput').addEventListener('change', handleFileSelect, false);</code></pre>
+
+## License
+
+See the [LICENSE](https://github.com/AllanBishop/blob/master/LICENSE) file.

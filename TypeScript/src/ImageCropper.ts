@@ -387,9 +387,14 @@ class ImageCropper
     ratioW:number = 1;
     ratioH:number = 1;
     fileType:string = 'png';
+    minXClamp:number;
+    maxXClamp:number;
+    minYClamp:number;
+    maxYClamp:number;
+    imageSet:boolean = false;
 
-    constructor(canvas,x:number = 0, y:number = 0, width:number = 100, height:number = 50, keepAspect:boolean = true, touchRadius:number = 20) {
-
+    constructor(canvas,x:number = 0, y:number = 0, width:number = 100, height:number = 50, keepAspect:boolean = true, touchRadius:number = 20)
+    {
         CropService.init(canvas);
         this.buffer = document.createElement('canvas');
         this.cropCanvas = document.createElement('canvas');
@@ -507,13 +512,13 @@ class ImageCropper
             ctx.strokeStyle = 'rgba(255,228,0,1)';
             ctx.strokeRect(bounds.left, bounds.top,
                 bounds.getWidth(),bounds.getHeight());
+
         }
         else
         {
             ctx.fillStyle = 'rgba(192,192,192,1)';
             ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         }
-
     }
 
     dragCrop(x:number,y:number, marker:DragMarker)
@@ -524,24 +529,24 @@ class ImageCropper
         var top = y-(bounds.getHeight()/2);
         var bottom = y+(bounds.getHeight()/2);
 
-        if(right >= this.canvas.width)
+        if(right >= this.maxXClamp)
         {
-            x = this.canvas.width-bounds.getWidth()/2;
+            x = this.maxXClamp-bounds.getWidth()/2;
         }
 
-        if(left <= 0)
+        if(left <= this.minXClamp)
         {
-            x = bounds.getWidth()/2
+            x = bounds.getWidth()/2+this.minXClamp;
         }
 
-        if(top <=0)
+        if(top <this.minYClamp)
         {
-            y = bounds.getHeight()/2
+            y = bounds.getHeight()/2+this.minYClamp;
         }
 
-        if(bottom >= this.canvas.height)
+        if(bottom >= this.maxYClamp)
         {
-            y = this.canvas.height-bounds.getHeight()/2;
+            y = this.maxYClamp-bounds.getHeight()/2;
         }
 
         this.tl.moveX(x-(bounds.getWidth()/2));
@@ -552,6 +557,7 @@ class ImageCropper
         this.bl.moveY(y+(bounds.getHeight()/2));
         this.br.moveX(x+(bounds.getWidth()/2));
         this.br.moveY(y+(bounds.getHeight()/2));
+
         marker.setPosition(x,y);
     }
 
@@ -695,7 +701,8 @@ class ImageCropper
 
     sign(x):number
     {
-        if( +x === x ) { // check if a number was given
+        if( +x === x )
+        {
             return (x === 0) ? x : (x > 0) ? 1 : -1;
         }
         return NaN;
@@ -762,33 +769,71 @@ class ImageCropper
         }
     }
 
-    clampPosition(x:number,y:number)
+
+    updateClampBounds()
     {
-        if(x< 0)
-        {
-            x = 0;
-        }
+            var sourceAspect = this.srcImage.height/this.srcImage.width;
+            var canvasAspect = this.canvas.height/this.canvas.width;
 
-        if(x> this.canvas.width)
-        {
-            x = this.canvas.width;
-        }
+            var w = this.canvas.width;
+            var h = this.canvas.height;
 
-        if(y< 0)
-        {
-            y = 0;
-        }
+            if(canvasAspect> sourceAspect)
+            {
+                w = this.canvas.width;
+                h = this.canvas.width*sourceAspect;
+            }
+            else
+            {
+                h = this.canvas.height;
+                w = this.canvas.height/sourceAspect;
+            }
 
-        if(y> this.canvas.height)
-        {
-            y = this.canvas.height;
-        }
+            this.minXClamp = this.canvas.width/2-w/2;
+            this.minYClamp = this.canvas.height/2-h/2;
+            this.maxXClamp = this.canvas.width/2+w/2;
+            this.maxYClamp = this.canvas.height/2+h/2;
+    }
 
-        return {x: x, y:y};
+    clampPosition(x:number,y:number):Point
+    {
+
+            if(x< this.minXClamp)
+            {
+                x = this.minXClamp;
+            }
+
+            if(x> this.maxXClamp)
+            {
+                x = this.maxXClamp;
+            }
+
+            if(y< this.minYClamp)
+            {
+                y = this.minYClamp;
+            }
+
+            if(y> this.maxYClamp)
+            {
+                y = this.maxYClamp;
+            }
+
+        return new Point(x,y);
+    }
+
+    isImageSet():boolean
+    {
+        return this.imageSet;
     }
 
     setImage(img:HTMLImageElement)
     {
+        if(!img)
+        {
+            throw "Image is null";
+        }
+
+        this.imageSet = true;
         this.ctx.clearRect(0, 0, this.canvas.width , this.canvas.height);
 
         var bufferContext = this.buffer.getContext('2d');
@@ -801,12 +846,86 @@ class ImageCropper
             this.fileType = fileType;
         }
         this.srcImage = img;
+
+        this.updateClampBounds();
+
+        var sourceAspect = this.srcImage.height/this.srcImage.width;
+        var cropBounds = this.getBounds();
+        var cropAspect = cropBounds.getHeight()/cropBounds.getWidth();
+
+        var w = this.canvas.width;
+        var h = this.canvas.height;
+
+        var cX = this.canvas.width / 2;
+        var cY = this.canvas.height / 2;
+
+        var tlPos:Point = new Point(cX - cropBounds.getWidth() / 2, cY + cropBounds.getHeight() / 2);
+        var trPos:Point = new Point(cX + cropBounds.getWidth() / 2, cY + cropBounds.getHeight() / 2);
+
+        var blPos:Point = new Point(cX - cropBounds.getWidth() / 2, cY - cropBounds.getHeight() / 2);
+        var brPos:Point = new Point(cX + cropBounds.getWidth() / 2, cY - cropBounds.getHeight() / 2);
+
+        this.tl.setPosition(tlPos.x,tlPos.y);
+        this.tr.setPosition(trPos.x,trPos.y);
+        this.bl.setPosition(blPos.x,blPos.y);
+        this.br.setPosition(brPos.x,brPos.y);
+
+        this.center.setPosition(cX,cY);
+
+        if(cropAspect> sourceAspect)
+        {
+
+            var imageH = Math.min(w*sourceAspect,h);
+
+            if(cropBounds.getHeight() > imageH)
+            {
+                var cropW = imageH/cropAspect;
+
+                var tlPos:Point = new Point(cX - cropW / 2, cY + imageH / 2);
+                var trPos:Point = new Point(cX + cropW / 2, cY + imageH / 2);
+
+                var blPos:Point = new Point(cX - cropW / 2, cY - imageH / 2);
+                var brPos:Point = new Point(cX + cropW / 2, cY - imageH / 2);
+
+                this.tl.setPosition(tlPos.x,tlPos.y);
+                this.tr.setPosition(trPos.x,trPos.y);
+                this.bl.setPosition(blPos.x,blPos.y);
+                this.br.setPosition(brPos.x,brPos.y);
+            }
+        }
+        else if(cropAspect < sourceAspect)
+        {
+            var imageW = Math.min(h/sourceAspect,w);
+
+            if(cropBounds.getWidth() > imageW)
+            {
+                var cropH = imageW*cropAspect;
+
+                var tlPos:Point = new Point(cX-imageW/2,cY+cropH/2);
+                var trPos:Point = new Point(cX+imageW/2,cY+cropH/2);
+
+                var blPos:Point = new Point(cX-imageW/2,cY-cropH/2);
+                var brPos:Point = new Point(cX+imageW/2,cY-cropH/2);
+
+                this.tl.setPosition(tlPos.x,tlPos.y);
+                this.tr.setPosition(trPos.x,trPos.y);
+                this.bl.setPosition(blPos.x,blPos.y);
+                this.br.setPosition(brPos.x,brPos.y);
+            }
+        }
+
         this.draw(this.ctx);
+
     }
 
     getCroppedImage(fillWidth?:number, fillHeight?:number)
     {
         var bounds:Bounds = this.getBounds();
+
+        if(!this.srcImage)
+        {
+            throw "Source image not set.";
+        }
 
         if(fillWidth && fillHeight)
         {
@@ -854,8 +973,8 @@ class ImageCropper
                 boundsMultiHeight = this.ratioH;
             }
 
-            this.cropCanvas.getContext('2d').drawImage(this.srcImage,(bounds.left)/this.ratioW-offsetW,
-                (bounds.top)/this.ratioH-offsetH, Math.max(bounds.getWidth()/boundsMultiWidth,1),
+            this.cropCanvas.getContext('2d').drawImage(this.srcImage,Math.max((bounds.left)/this.ratioW-offsetW,0),
+                Math.max((bounds.top/this.ratioH-offsetH),0), Math.max(bounds.getWidth()/boundsMultiWidth,1),
                 Math.max(bounds.getHeight()/boundsMultiHeight,1),0, 0, fillWidth,fillHeight);
 
             this.croppedImage.width = fillWidth;
@@ -876,10 +995,8 @@ class ImageCropper
         }
 
         this.croppedImage.src = this.cropCanvas.toDataURL("image/"+this.fileType);
-
         return this.croppedImage;
     }
-
 
     getBounds():Bounds
     {
@@ -931,12 +1048,10 @@ class ImageCropper
         };
     }
 
-
     onMouseMove(e:MouseEvent)
     {
 
         var mousePosition = this.getMousePos(this.canvas, e);
-
         var cursorDrawn = false;
 
         if(this.handle==this.center)
