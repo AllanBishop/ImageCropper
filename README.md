@@ -69,8 +69,6 @@ Checks to see if an image has been set.
 
 ## Example code
 
-The following code enables to select an image using a file input and crop it. The cropped image data is inserted into img each time the crop area updates.
-
 
 ```html
 <!DOCTYPE html>
