@@ -2,9 +2,9 @@
 
 An HTML5 image cropping tool. Features a rectangular crop area. The crop area's aspect ratio can be enforced during dragging. The crop image can either be 1:1 or scaled to fit an area.
 
-## Screenshots
+## Screenshot
 
-![Square Crop](https://github.com/AllanBishop/ImageCropper/master/screenshots/screenshot.jpg "Screenshot")
+![Screenshot](https://raw.githubusercontent.com/AllanBishop/ImageCropper/master/screenshots/screenshot.jpg "Screenshot")
 
 ## Live demo
 
@@ -32,7 +32,9 @@ Add the script to your application.
 ## Public Functions
 
 ### ImageCropper(canvas, x, y, width, height, keepAspect, touchRadius):void
+
 Constructor function that initializes the image cropper.
+
 | Parameter | Description |
 | ------ | ----------- |
 | canvas | The canvas element that the cropping tool will display on.|
@@ -43,9 +45,11 @@ Constructor function that initializes the image cropper.
 | keepAspect   | *Optional:* Enforces that the aspect ratio is kept when dragging the crop area. The aspect ratio is defined by the width and height paramater. |
 | touchRadius  | *Optional:* The radius for detecting touches/clicks on the corner drag markers and the centre drag marker. |
 
+
 ### getCroppedImage(fillWidth, fillHeight):Image
 
 Returns an image that is cropped from the source image based on the crop area. If no fillWidth and fillHeight is set the image will be a 1:1 crop. If fillWidth and fillHeight are set the cropped image will scale to fit. It is recommended to ensure the fillWidth and fillHeight are set to the same aspect ratio as the crop area to prevent distortion.
+
 | Parameter | Description |
 | ------ | ----------- |
 | fillWidth| *Optional:* The fill width that the cropped area will map to.|
@@ -67,9 +71,11 @@ Checks to see if an image has been set.
 
 The following code enables to select an image using a file input and crop it. The cropped image data is inserted into img each time the crop area updates.
 
-```<!DOCTYPE html>
+
+```html
+<!DOCTYPE html>
 <html>
-	<head lang="en">
+<head lang="en">
 		<meta charset="UTF-8">
 		<title>Image Cropper Test</title>
 	</head>
@@ -88,10 +94,13 @@ The following code enables to select an image using a file input and crop it. Th
 		<script src="ImageCropperTest.js"></script>
 		<script src="ImageCropper.js"></script>
 	</body>
-</html>
-```
+</html>```
+
 ImageCropperTest.js
-<pre><code>var crop;
+
+
+```javascript
+var crop;
 window.onload = function () {
     var canvas = document.getElementById("imageCanvas");
     var width = 600;
@@ -123,8 +132,11 @@ function handleFileSelect(evt) {
         reader.readAsDataURL(file);
     }
 }
-document.getElementById('fileInput').addEventListener('change', handleFileSelect, false);</code></pre>
+document.getElementById('fileInput').addEventListener('change', handleFileSelect, false);
+
+```
+
 
 ## License
 
-See the [LICENSE](https://github.com/AllanBishop/blob/master/LICENSE) file.
+See the [LICENSE](https://github.com/AllanBishop/ImageCropper/blob/master/LICENSE.md) file.
