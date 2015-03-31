@@ -470,13 +470,11 @@ class ImageCropper
 
             if(canvasAspect< sourceAspect)
             {
-                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width,
-                    this.srcImage.height, this.buffer.width / 2 - w / 2, 0, w, h);
+                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, this.buffer.width / 2 - w / 2, 0, w, h);
             }
             else
             {
-                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width,
-                    this.srcImage.height, 0, this.buffer.height / 2 - h / 2, w, h);
+                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, 0, this.buffer.height / 2 - h / 2, w, h);
             }
 
 
@@ -486,13 +484,11 @@ class ImageCropper
 
             if(canvasAspect< sourceAspect)
             {
-                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width,
-                    this.srcImage.height, this.buffer.width / 2 - w /2, 0, w, h);
+                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, this.buffer.width / 2 - w /2, 0, w, h);
             }
             else
             {
-                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width,
-                    this.srcImage.height, 0,this.buffer.height / 2 - h / 2, w, h);
+                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, 0,this.buffer.height / 2 - h / 2, w, h);
             }
 
             ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
@@ -501,17 +497,17 @@ class ImageCropper
                 Math.max(bounds.getWidth(),1), Math.max(bounds.getHeight(),1),bounds.left,
                 bounds.top, bounds.getWidth(),bounds.getHeight());
 
+            var marker:CornerMarker;
             for(var i:number = 0; i<this.markers.length;i++)
             {
-                var marker:CornerMarker = this.markers[i];
+                marker = this.markers[i];
                 marker.draw(ctx);
             }
 
             this.center.draw(ctx);
             ctx.lineWidth = 2;
             ctx.strokeStyle = 'rgba(255,228,0,1)';
-            ctx.strokeRect(bounds.left, bounds.top,
-                bounds.getWidth(),bounds.getHeight());
+            ctx.strokeRect(bounds.left, bounds.top, bounds.getWidth(),bounds.getHeight());
 
         }
         else
@@ -563,68 +559,70 @@ class ImageCropper
 
     dragCorner(x:number,y:number, marker:CornerMarker)
     {
+        var iX:number = 0;
+        var iY:number =0;
+        var ax:number = 0;
+        var ay:number = 0;
+        var newHeight:number =0;
+        var newWidth:number =0;
+        var newY:number =0;
+        var newX:number =0;
+        var anchorMarker:CornerMarker;
+        var fold:number = 0;;
 
         if(this.keepAspect)
         {
-            var anchorMarker:CornerMarker = marker.getHorizontalNeighbour().getVerticalNeighbour();
-            var ax = anchorMarker.getPosition().x;
-            var ay = anchorMarker.getPosition().y;
+            anchorMarker = marker.getHorizontalNeighbour().getVerticalNeighbour();
+            ax = anchorMarker.getPosition().x;
+            ay = anchorMarker.getPosition().y;
 
             if(x <= anchorMarker.getPosition().x)
             {
 
                 if(y <= anchorMarker.getPosition().y)
                 {
-                    var iX = ax-(100/this.aspectRatio);
-                    var iY = ay-(100/this.aspectRatio*this.aspectRatio);
-                    var fold:number = this.getSide(new
-                        Point(iX,iY),anchorMarker.getPosition(), new Point(x,y));
+                    iX = ax-(100/this.aspectRatio);
+                    iY = ay-(100/this.aspectRatio*this.aspectRatio);
+                    fold = this.getSide(new Point(iX,iY),anchorMarker.getPosition(), new Point(x,y));
 
                     if(fold >0)
                     {
-                        var newHeight:number =
-                            Math.abs(anchorMarker.getPosition().y-y);
-                        var newWidth:number = newHeight/this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y-newHeight;
-                        var newX = anchorMarker.getPosition().x-newWidth;
-
+                        newHeight = Math.abs(anchorMarker.getPosition().y-y);
+                        newWidth = newHeight/this.aspectRatio;
+                        newY = anchorMarker.getPosition().y-newHeight;
+                        newX = anchorMarker.getPosition().x-newWidth;
                         marker.move(newX,newY);
 
                     }
                     else if(fold < 0)
                     {
-                        var newWidth:number =
-                            Math.abs(anchorMarker.getPosition().x-x);
-                        var newHeight:number = newWidth*this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y-newHeight;
-                        var newX = anchorMarker.getPosition().x-newWidth;
-
+                        newWidth = Math.abs(anchorMarker.getPosition().x-x);
+                        newHeight = newWidth*this.aspectRatio;
+                        newY = anchorMarker.getPosition().y-newHeight;
+                        newX = anchorMarker.getPosition().x-newWidth;
                         marker.move(newX,newY);
                     }
                 }
                 else
                 {
-                    var iX = ax-(100/this.aspectRatio);
-                    var iY = ay+(100/this.aspectRatio*this.aspectRatio);
-                    var fold:number = this.getSide(new
-                        Point(iX,iY),anchorMarker.getPosition(), new Point(x,y));
+                    iX = ax-(100/this.aspectRatio);
+                    iY = ay+(100/this.aspectRatio*this.aspectRatio);
+                    fold = this.getSide(new Point(iX,iY),anchorMarker.getPosition(), new Point(x,y));
 
                     if(fold >0)
                     {
-                        var newWidth:number =
-                            Math.abs(anchorMarker.getPosition().x-x);
-                        var newHeight:number = newWidth*this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y+newHeight;
-                        var newX = anchorMarker.getPosition().x-newWidth;
+                        newWidth = Math.abs(anchorMarker.getPosition().x-x);
+                        newHeight = newWidth*this.aspectRatio;
+                        newY = anchorMarker.getPosition().y+newHeight;
+                        newX = anchorMarker.getPosition().x-newWidth;
                         marker.move(newX,newY);
                     }
                     else if(fold < 0)
                     {
-                        var newHeight:number =
-                            Math.abs(anchorMarker.getPosition().y-y);
-                        var newWidth:number = newHeight/this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y+newHeight;
-                        var newX = anchorMarker.getPosition().x-newWidth;
+                        newHeight = Math.abs(anchorMarker.getPosition().y-y);
+                        newWidth = newHeight/this.aspectRatio;
+                        newY = anchorMarker.getPosition().y+newHeight;
+                        newX = anchorMarker.getPosition().x-newWidth;
                         marker.move(newX,newY);
                     }
                 }
@@ -633,54 +631,48 @@ class ImageCropper
             {
                 if(y <= anchorMarker.getPosition().y)
                 {
-                    var iX = ax+(100/this.aspectRatio);
-                    var iY = ay-(100/this.aspectRatio*this.aspectRatio);
-                    var fold:number = this.getSide(new
-                        Point(iX,iY),anchorMarker.getPosition(), new Point(x,y));
+                    iX = ax+(100/this.aspectRatio);
+                    iY = ay-(100/this.aspectRatio*this.aspectRatio);
+                    fold = this.getSide(new Point(iX,iY),anchorMarker.getPosition(), new Point(x,y));
 
                     if(fold <0)
                     {
-                        var newHeight:number =
-                            Math.abs(anchorMarker.getPosition().y-y);
-                        var newWidth:number = newHeight/this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y-newHeight;
-                        var newX = anchorMarker.getPosition().x+newWidth;
+                        newHeight = Math.abs(anchorMarker.getPosition().y-y);
+                        newWidth = newHeight/this.aspectRatio;
+                        newY = anchorMarker.getPosition().y-newHeight;
+                        newX = anchorMarker.getPosition().x+newWidth;
                         marker.move(newX,newY);
                     }
                     else if(fold > 0)
                     {
-                        var newWidth:number =
-                            Math.abs(anchorMarker.getPosition().x-x);
-                        var newHeight:number = newWidth*this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y-newHeight;
-                        var newX = anchorMarker.getPosition().x+newWidth;
+                        newWidth = Math.abs(anchorMarker.getPosition().x-x);
+                        newHeight = newWidth*this.aspectRatio;
+                        newY = anchorMarker.getPosition().y-newHeight;
+                        newX = anchorMarker.getPosition().x+newWidth;
                         marker.move(newX,newY);
                     }
                 }
                 else
                 {
-                    var iX = ax+(100/this.aspectRatio);
-                    var iY = ay+(100/this.aspectRatio*this.aspectRatio);
-                    var fold:number = this.getSide(new
-                        Point(iX,iY),anchorMarker.getPosition(), new Point(x,y));
+                    iX = ax+(100/this.aspectRatio);
+                    iY = ay+(100/this.aspectRatio*this.aspectRatio);
+                    fold = this.getSide(new Point(iX,iY),anchorMarker.getPosition(), new Point(x,y));
 
                     if(fold <0)
                     {
-                        var newWidth:number =
-                            Math.abs(anchorMarker.getPosition().x-x);
-                        var newHeight:number = newWidth*this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y+newHeight;
-                        var newX = anchorMarker.getPosition().x+newWidth;
+                        newWidth = Math.abs(anchorMarker.getPosition().x-x);
+                        newHeight = newWidth*this.aspectRatio;
+                        newY = anchorMarker.getPosition().y+newHeight;
+                        newX = anchorMarker.getPosition().x+newWidth;
                         marker.move(newX,newY);
 
                     }
                     else if(fold > 0)
                     {
-                        var newHeight:number =
-                            Math.abs(anchorMarker.getPosition().y-y);
-                        var newWidth:number = newHeight/this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y+newHeight;
-                        var newX = anchorMarker.getPosition().x+newWidth;
+                        newHeight = Math.abs(anchorMarker.getPosition().y-y);
+                        newWidth = newHeight/this.aspectRatio;
+                        newY = anchorMarker.getPosition().y+newHeight;
+                        newX = anchorMarker.getPosition().x+newWidth;
                         marker.move(newX,newY);
                     }
                 }
@@ -915,7 +907,6 @@ class ImageCropper
         }
 
         this.draw(this.ctx);
-
     }
 
     getCroppedImage(fillWidth?:number, fillHeight?:number)
@@ -973,9 +964,10 @@ class ImageCropper
                 boundsMultiHeight = this.ratioH;
             }
 
-            this.cropCanvas.getContext('2d').drawImage(this.srcImage,Math.max((bounds.left)/this.ratioW-offsetW,0),
-                Math.max((bounds.top/this.ratioH-offsetH),0), Math.max(bounds.getWidth()/boundsMultiWidth,1),
-                Math.max(bounds.getHeight()/boundsMultiHeight,1),0, 0, fillWidth,fillHeight);
+            this.cropCanvas.getContext('2d').drawImage(this.srcImage,Math.max(Math.round((bounds.left)/this.ratioW-offsetW),0),
+                Math.max(Math.round(bounds.top/this.ratioH-offsetH),0), Math.max(Math.round(bounds.getWidth()/boundsMultiWidth),1),
+                Math.max(Math.round(bounds.getHeight()/boundsMultiHeight),1),0, 0, fillWidth,fillHeight);
+
 
             this.croppedImage.width = fillWidth;
             this.croppedImage.height = fillHeight;
@@ -1050,20 +1042,17 @@ class ImageCropper
 
     onMouseMove(e:MouseEvent)
     {
-
         var mousePosition = this.getMousePos(this.canvas, e);
         var cursorDrawn = false;
 
         if(this.handle==this.center)
         {
-            var el:HTMLElement = <HTMLElement>e.target;
-            el.style.cursor = 'move';
+            this.canvas.style.cursor = 'move';
             cursorDrawn = true;
         }
 
         if(this.handle!=null && this.handle instanceof CornerMarker)
         {
-
             this.drawCornerCursor(this.handle,mousePosition.x,mousePosition.y,e);
             cursorDrawn = true;
         }
@@ -1072,7 +1061,6 @@ class ImageCropper
 
         if(!cursorDrawn)
         {
-
             for (var i:number = 0; i < this.markers.length; i++)
             {
                 didDraw = didDraw ||
@@ -1086,12 +1074,10 @@ class ImageCropper
             }
         }
 
-        if (!didDraw && !cursorDrawn &&
-            this.center.touchInBounds(mousePosition.x, mousePosition.y))
+        if (!didDraw && !cursorDrawn && this.center.touchInBounds(mousePosition.x, mousePosition.y))
         {
             this.center.setOver(true);
-            var el:HTMLElement = <HTMLElement>e.target;
-            el.style.cursor = 'move';
+            this.canvas.style.cursor = 'move';
         }
         else
         {
@@ -1110,6 +1096,8 @@ class ImageCropper
 
     drawCornerCursor(marker:CornerMarker, x:number, y:number, e:MouseEvent)
     {
+        var el:HTMLElement;
+
         if (marker.touchInBounds(x, y))
         {
             marker.setOver(true);
@@ -1120,12 +1108,12 @@ class ImageCropper
                 if(marker.getVerticalNeighbour().getPosition().y >
                     marker.getPosition().y)
                 {
-                    var el:HTMLElement = <HTMLElement>e.target;
+                    el = <HTMLElement>e.target;
                     el.style.cursor = 'nwse-resize';
                 }
                 else
                 {
-                    var el:HTMLElement = <HTMLElement>e.target;
+                    el = <HTMLElement>e.target;
                     el.style.cursor = 'nesw-resize';
                 }
             }
@@ -1134,12 +1122,12 @@ class ImageCropper
                 if(marker.getVerticalNeighbour().getPosition().y >
                     marker.getPosition().y)
                 {
-                    var el:HTMLElement = <HTMLElement>e.target;
+                    el = <HTMLElement>e.target;
                     el.style.cursor = 'nesw-resize';
                 }
                 else
                 {
-                    var el:HTMLElement = <HTMLElement>e.target;
+                    el = <HTMLElement>e.target;
                     el.style.cursor = 'nwse-resize';
                 }
             }

@@ -336,8 +336,9 @@ var ImageCropper = (function () {
             ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
             ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
             ctx.drawImage(this.buffer, bounds.left, bounds.top, Math.max(bounds.getWidth(), 1), Math.max(bounds.getHeight(), 1), bounds.left, bounds.top, bounds.getWidth(), bounds.getHeight());
+            var marker;
             for (var i = 0; i < this.markers.length; i++) {
-                var marker = this.markers[i];
+                marker = this.markers[i];
                 marker.draw(ctx);
             }
             this.center.draw(ctx);
@@ -379,86 +380,97 @@ var ImageCropper = (function () {
         marker.setPosition(x, y);
     };
     ImageCropper.prototype.dragCorner = function (x, y, marker) {
+        var iX = 0;
+        var iY = 0;
+        var ax = 0;
+        var ay = 0;
+        var newHeight = 0;
+        var newWidth = 0;
+        var newY = 0;
+        var newX = 0;
+        var anchorMarker;
+        var fold = 0;
+        ;
         if (this.keepAspect) {
-            var anchorMarker = marker.getHorizontalNeighbour().getVerticalNeighbour();
-            var ax = anchorMarker.getPosition().x;
-            var ay = anchorMarker.getPosition().y;
+            anchorMarker = marker.getHorizontalNeighbour().getVerticalNeighbour();
+            ax = anchorMarker.getPosition().x;
+            ay = anchorMarker.getPosition().y;
             if (x <= anchorMarker.getPosition().x) {
                 if (y <= anchorMarker.getPosition().y) {
-                    var iX = ax - (100 / this.aspectRatio);
-                    var iY = ay - (100 / this.aspectRatio * this.aspectRatio);
-                    var fold = this.getSide(new Point(iX, iY), anchorMarker.getPosition(), new Point(x, y));
+                    iX = ax - (100 / this.aspectRatio);
+                    iY = ay - (100 / this.aspectRatio * this.aspectRatio);
+                    fold = this.getSide(new Point(iX, iY), anchorMarker.getPosition(), new Point(x, y));
                     if (fold > 0) {
-                        var newHeight = Math.abs(anchorMarker.getPosition().y - y);
-                        var newWidth = newHeight / this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y - newHeight;
-                        var newX = anchorMarker.getPosition().x - newWidth;
+                        newHeight = Math.abs(anchorMarker.getPosition().y - y);
+                        newWidth = newHeight / this.aspectRatio;
+                        newY = anchorMarker.getPosition().y - newHeight;
+                        newX = anchorMarker.getPosition().x - newWidth;
                         marker.move(newX, newY);
                     }
                     else if (fold < 0) {
-                        var newWidth = Math.abs(anchorMarker.getPosition().x - x);
-                        var newHeight = newWidth * this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y - newHeight;
-                        var newX = anchorMarker.getPosition().x - newWidth;
+                        newWidth = Math.abs(anchorMarker.getPosition().x - x);
+                        newHeight = newWidth * this.aspectRatio;
+                        newY = anchorMarker.getPosition().y - newHeight;
+                        newX = anchorMarker.getPosition().x - newWidth;
                         marker.move(newX, newY);
                     }
                 }
                 else {
-                    var iX = ax - (100 / this.aspectRatio);
-                    var iY = ay + (100 / this.aspectRatio * this.aspectRatio);
-                    var fold = this.getSide(new Point(iX, iY), anchorMarker.getPosition(), new Point(x, y));
+                    iX = ax - (100 / this.aspectRatio);
+                    iY = ay + (100 / this.aspectRatio * this.aspectRatio);
+                    fold = this.getSide(new Point(iX, iY), anchorMarker.getPosition(), new Point(x, y));
                     if (fold > 0) {
-                        var newWidth = Math.abs(anchorMarker.getPosition().x - x);
-                        var newHeight = newWidth * this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y + newHeight;
-                        var newX = anchorMarker.getPosition().x - newWidth;
+                        newWidth = Math.abs(anchorMarker.getPosition().x - x);
+                        newHeight = newWidth * this.aspectRatio;
+                        newY = anchorMarker.getPosition().y + newHeight;
+                        newX = anchorMarker.getPosition().x - newWidth;
                         marker.move(newX, newY);
                     }
                     else if (fold < 0) {
-                        var newHeight = Math.abs(anchorMarker.getPosition().y - y);
-                        var newWidth = newHeight / this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y + newHeight;
-                        var newX = anchorMarker.getPosition().x - newWidth;
+                        newHeight = Math.abs(anchorMarker.getPosition().y - y);
+                        newWidth = newHeight / this.aspectRatio;
+                        newY = anchorMarker.getPosition().y + newHeight;
+                        newX = anchorMarker.getPosition().x - newWidth;
                         marker.move(newX, newY);
                     }
                 }
             }
             else {
                 if (y <= anchorMarker.getPosition().y) {
-                    var iX = ax + (100 / this.aspectRatio);
-                    var iY = ay - (100 / this.aspectRatio * this.aspectRatio);
-                    var fold = this.getSide(new Point(iX, iY), anchorMarker.getPosition(), new Point(x, y));
+                    iX = ax + (100 / this.aspectRatio);
+                    iY = ay - (100 / this.aspectRatio * this.aspectRatio);
+                    fold = this.getSide(new Point(iX, iY), anchorMarker.getPosition(), new Point(x, y));
                     if (fold < 0) {
-                        var newHeight = Math.abs(anchorMarker.getPosition().y - y);
-                        var newWidth = newHeight / this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y - newHeight;
-                        var newX = anchorMarker.getPosition().x + newWidth;
+                        newHeight = Math.abs(anchorMarker.getPosition().y - y);
+                        newWidth = newHeight / this.aspectRatio;
+                        newY = anchorMarker.getPosition().y - newHeight;
+                        newX = anchorMarker.getPosition().x + newWidth;
                         marker.move(newX, newY);
                     }
                     else if (fold > 0) {
-                        var newWidth = Math.abs(anchorMarker.getPosition().x - x);
-                        var newHeight = newWidth * this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y - newHeight;
-                        var newX = anchorMarker.getPosition().x + newWidth;
+                        newWidth = Math.abs(anchorMarker.getPosition().x - x);
+                        newHeight = newWidth * this.aspectRatio;
+                        newY = anchorMarker.getPosition().y - newHeight;
+                        newX = anchorMarker.getPosition().x + newWidth;
                         marker.move(newX, newY);
                     }
                 }
                 else {
-                    var iX = ax + (100 / this.aspectRatio);
-                    var iY = ay + (100 / this.aspectRatio * this.aspectRatio);
-                    var fold = this.getSide(new Point(iX, iY), anchorMarker.getPosition(), new Point(x, y));
+                    iX = ax + (100 / this.aspectRatio);
+                    iY = ay + (100 / this.aspectRatio * this.aspectRatio);
+                    fold = this.getSide(new Point(iX, iY), anchorMarker.getPosition(), new Point(x, y));
                     if (fold < 0) {
-                        var newWidth = Math.abs(anchorMarker.getPosition().x - x);
-                        var newHeight = newWidth * this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y + newHeight;
-                        var newX = anchorMarker.getPosition().x + newWidth;
+                        newWidth = Math.abs(anchorMarker.getPosition().x - x);
+                        newHeight = newWidth * this.aspectRatio;
+                        newY = anchorMarker.getPosition().y + newHeight;
+                        newX = anchorMarker.getPosition().x + newWidth;
                         marker.move(newX, newY);
                     }
                     else if (fold > 0) {
-                        var newHeight = Math.abs(anchorMarker.getPosition().y - y);
-                        var newWidth = newHeight / this.aspectRatio;
-                        var newY = anchorMarker.getPosition().y + newHeight;
-                        var newX = anchorMarker.getPosition().x + newWidth;
+                        newHeight = Math.abs(anchorMarker.getPosition().y - y);
+                        newWidth = newHeight / this.aspectRatio;
+                        newY = anchorMarker.getPosition().y + newHeight;
+                        newX = anchorMarker.getPosition().x + newWidth;
                         marker.move(newX, newY);
                     }
                 }
@@ -652,7 +664,7 @@ var ImageCropper = (function () {
             if (this.ratioH < 1) {
                 boundsMultiHeight = this.ratioH;
             }
-            this.cropCanvas.getContext('2d').drawImage(this.srcImage, Math.max((bounds.left) / this.ratioW - offsetW, 0), Math.max((bounds.top / this.ratioH - offsetH), 0), Math.max(bounds.getWidth() / boundsMultiWidth, 1), Math.max(bounds.getHeight() / boundsMultiHeight, 1), 0, 0, fillWidth, fillHeight);
+            this.cropCanvas.getContext('2d').drawImage(this.srcImage, Math.max(Math.round((bounds.left) / this.ratioW - offsetW), 0), Math.max(Math.round(bounds.top / this.ratioH - offsetH), 0), Math.max(Math.round(bounds.getWidth() / boundsMultiWidth), 1), Math.max(Math.round(bounds.getHeight() / boundsMultiHeight), 1), 0, 0, fillWidth, fillHeight);
             this.croppedImage.width = fillWidth;
             this.croppedImage.height = fillHeight;
         }
@@ -704,8 +716,7 @@ var ImageCropper = (function () {
         var mousePosition = this.getMousePos(this.canvas, e);
         var cursorDrawn = false;
         if (this.handle == this.center) {
-            var el = e.target;
-            el.style.cursor = 'move';
+            this.canvas.style.cursor = 'move';
             cursorDrawn = true;
         }
         if (this.handle != null && this.handle instanceof CornerMarker) {
@@ -724,8 +735,7 @@ var ImageCropper = (function () {
         }
         if (!didDraw && !cursorDrawn && this.center.touchInBounds(mousePosition.x, mousePosition.y)) {
             this.center.setOver(true);
-            var el = e.target;
-            el.style.cursor = 'move';
+            this.canvas.style.cursor = 'move';
         }
         else {
             this.center.setOver(false);
@@ -737,25 +747,26 @@ var ImageCropper = (function () {
         this.handleMove(mousePosition.x, mousePosition.y);
     };
     ImageCropper.prototype.drawCornerCursor = function (marker, x, y, e) {
+        var el;
         if (marker.touchInBounds(x, y)) {
             marker.setOver(true);
             if (marker.getHorizontalNeighbour().getPosition().x > marker.getPosition().x) {
                 if (marker.getVerticalNeighbour().getPosition().y > marker.getPosition().y) {
-                    var el = e.target;
+                    el = e.target;
                     el.style.cursor = 'nwse-resize';
                 }
                 else {
-                    var el = e.target;
+                    el = e.target;
                     el.style.cursor = 'nesw-resize';
                 }
             }
             else {
                 if (marker.getVerticalNeighbour().getPosition().y > marker.getPosition().y) {
-                    var el = e.target;
+                    el = e.target;
                     el.style.cursor = 'nesw-resize';
                 }
                 else {
-                    var el = e.target;
+                    el = e.target;
                     el.style.cursor = 'nwse-resize';
                 }
             }

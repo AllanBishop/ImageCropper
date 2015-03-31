@@ -120,17 +120,19 @@ function previewLoaded(img) {
 function handleFileSelect(evt) {
     var file = evt.target.files[0];
     var reader = new FileReader();
-    reader.onload = function () {
-        var img = new Image();
-        img.src = reader.result;
+    var img = new Image();
+    //listener required for FireFox
+    img.addEventListener("load", function () {
         crop.setImage(img);
         preview();
+    }, false);
+    reader.onload = function () {
+        img.src = reader.result;
     };
     if (file) {
         reader.readAsDataURL(file);
     }
 }
-document.getElementById('fileInput').addEventListener('change', handleFileSelect, false);
 
 ```
 

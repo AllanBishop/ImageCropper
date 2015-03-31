@@ -56,12 +56,17 @@ function handleFileSelect(evt) {
     var file = evt.target.files[0];
     var reader  = new FileReader();
 
-    reader.onload = function ()
+    var img = new Image();
+
+    img.addEventListener("load", function()
     {
-        var img = new Image();
-        img.src = reader.result;
         crop.setImage(img);
         preview();
+    }, false);
+
+    reader.onload = function ()
+    {
+        img.src = reader.result;
     }
 
     if (file)
