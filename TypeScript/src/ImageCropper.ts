@@ -568,7 +568,7 @@ class ImageCropper
         var newY:number =0;
         var newX:number =0;
         var anchorMarker:CornerMarker;
-        var fold:number = 0;;
+        var fold:number = 0;
 
         if(this.keepAspect)
         {
@@ -866,18 +866,16 @@ class ImageCropper
 
         if(cropAspect> sourceAspect)
         {
-
             var imageH = Math.min(w*sourceAspect,h);
 
             if(cropBounds.getHeight() > imageH)
             {
                 var cropW = imageH/cropAspect;
 
-                var tlPos:Point = new Point(cX - cropW / 2, cY + imageH / 2);
-                var trPos:Point = new Point(cX + cropW / 2, cY + imageH / 2);
-
-                var blPos:Point = new Point(cX - cropW / 2, cY - imageH / 2);
-                var brPos:Point = new Point(cX + cropW / 2, cY - imageH / 2);
+                tlPos = new Point(cX - cropW / 2, cY + imageH / 2);
+                trPos = new Point(cX + cropW / 2, cY + imageH / 2);
+                blPos = new Point(cX - cropW / 2, cY - imageH / 2);
+                brPos = new Point(cX + cropW / 2, cY - imageH / 2);
 
                 this.tl.setPosition(tlPos.x,tlPos.y);
                 this.tr.setPosition(trPos.x,trPos.y);
@@ -893,11 +891,10 @@ class ImageCropper
             {
                 var cropH = imageW*cropAspect;
 
-                var tlPos:Point = new Point(cX-imageW/2,cY+cropH/2);
-                var trPos:Point = new Point(cX+imageW/2,cY+cropH/2);
-
-                var blPos:Point = new Point(cX-imageW/2,cY-cropH/2);
-                var brPos:Point = new Point(cX+imageW/2,cY-cropH/2);
+                tlPos = new Point(cX-imageW/2,cY+cropH/2);
+                trPos = new Point(cX+imageW/2,cY+cropH/2);
+                blPos = new Point(cX-imageW/2,cY-cropH/2);
+                brPos = new Point(cX+imageW/2,cY-cropH/2);
 
                 this.tl.setPosition(tlPos.x,tlPos.y);
                 this.tr.setPosition(trPos.x,trPos.y);

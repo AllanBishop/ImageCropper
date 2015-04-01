@@ -390,7 +390,6 @@ var ImageCropper = (function () {
         var newX = 0;
         var anchorMarker;
         var fold = 0;
-        ;
         if (this.keepAspect) {
             anchorMarker = marker.getHorizontalNeighbour().getVerticalNeighbour();
             ax = anchorMarker.getPosition().x;
@@ -602,10 +601,10 @@ var ImageCropper = (function () {
             var imageH = Math.min(w * sourceAspect, h);
             if (cropBounds.getHeight() > imageH) {
                 var cropW = imageH / cropAspect;
-                var tlPos = new Point(cX - cropW / 2, cY + imageH / 2);
-                var trPos = new Point(cX + cropW / 2, cY + imageH / 2);
-                var blPos = new Point(cX - cropW / 2, cY - imageH / 2);
-                var brPos = new Point(cX + cropW / 2, cY - imageH / 2);
+                tlPos = new Point(cX - cropW / 2, cY + imageH / 2);
+                trPos = new Point(cX + cropW / 2, cY + imageH / 2);
+                blPos = new Point(cX - cropW / 2, cY - imageH / 2);
+                brPos = new Point(cX + cropW / 2, cY - imageH / 2);
                 this.tl.setPosition(tlPos.x, tlPos.y);
                 this.tr.setPosition(trPos.x, trPos.y);
                 this.bl.setPosition(blPos.x, blPos.y);
@@ -616,10 +615,10 @@ var ImageCropper = (function () {
             var imageW = Math.min(h / sourceAspect, w);
             if (cropBounds.getWidth() > imageW) {
                 var cropH = imageW * cropAspect;
-                var tlPos = new Point(cX - imageW / 2, cY + cropH / 2);
-                var trPos = new Point(cX + imageW / 2, cY + cropH / 2);
-                var blPos = new Point(cX - imageW / 2, cY - cropH / 2);
-                var brPos = new Point(cX + imageW / 2, cY - cropH / 2);
+                tlPos = new Point(cX - imageW / 2, cY + cropH / 2);
+                trPos = new Point(cX + imageW / 2, cY + cropH / 2);
+                blPos = new Point(cX - imageW / 2, cY - cropH / 2);
+                brPos = new Point(cX + imageW / 2, cY - cropH / 2);
                 this.tl.setPosition(tlPos.x, tlPos.y);
                 this.tr.setPosition(trPos.x, trPos.y);
                 this.bl.setPosition(blPos.x, blPos.y);

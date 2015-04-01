@@ -8,7 +8,7 @@ An HTML5 image cropping tool. Features a rectangular crop area. The crop area's 
 
 ## Live demo
 
-[Live demo on JSBin](http://jsbin.com/pajiha/1/edit?html,js,output)
+[Live demo on JSBin](http://jsbin.com/pajiha/3/edit?html,js,output)
 
 ## Requirements
 
@@ -92,7 +92,8 @@ Checks to see if an image has been set.
 		<script src="ImageCropperTest.js"></script>
 		<script src="ImageCropper.js"></script>
 	</body>
-</html>```
+</html>
+```
 
 ImageCropperTest.js
 
