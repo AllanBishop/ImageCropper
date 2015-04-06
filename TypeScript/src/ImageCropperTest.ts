@@ -33,6 +33,7 @@ window.onload = () =>
     var height = 300;
     crop = new ImageCropper(canvas,canvas.width/2-width/2, canvas.height/2-height/2,width, height,true);
     window.addEventListener('mouseup', preview) ;
+    window.addEventListener('touchend', preview) ;
 };
 
 function preview()

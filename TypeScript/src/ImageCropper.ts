@@ -22,11 +22,11 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  **/
-
+/// <reference path="touch-events.d.ts" />
 class Handle
 {
     protected position:Point;
-    protected offset:Point;
+    public offset:Point;
     protected radius:number;
     protected over:boolean = false;
     protected drag:boolean = false;
@@ -41,7 +41,7 @@ class Handle
     setDrag(value:boolean)
     {
         this.drag = value;
-        this.over = value;
+        this.setOver(value);
     }
 
     draw(ctx)
@@ -72,7 +72,8 @@ class Handle
     }
 }
 
-class CropService {
+class CropService
+{
 
     public static canvas:HTMLCanvasElement;
     public static ctx;
@@ -87,102 +88,80 @@ class CropService {
 
 class DragMarker extends Handle
 {
+
+    iconPoints:Array<Point> = new Array<Point>();
+    scaledIconPoints:Array<Point> = new Array<Point>();
+
     constructor(x:number, y:number, radius:number)
     {
         super(x,y,radius);
+
+        this.getDragIconPoints(this.iconPoints,1);
+        this.getDragIconPoints(this.scaledIconPoints,1.2);
     }
 
     draw(ctx)
     {
-        var scale = 1;
 
         if(this.over || this.drag)
         {
-            scale = 1.2;
+            this.drawIcon(ctx,this.scaledIconPoints);
+        }
+        else
+        {
+            this.drawIcon(ctx,this.iconPoints);
 
         }
-
-        this.drawConnector(ctx,90,scale);
-        this.drawConnector(ctx,0,scale);
-        this.drawArrow(ctx,0,scale);
-        this.drawArrow(ctx,90,scale);
-        this.drawArrow(ctx,180,scale);
-        this.drawArrow(ctx,270,scale);
     }
 
-    rotatePoint(cx:number,cy:number,angle:number,p:Point):Point
+    getDragIconPoints(arr:Array<Point>,scale)
     {
-        var s:number = Math.sin(angle);
-        var c:number = Math.cos(angle);
+        var maxLength = 17*scale;
+        var arrowWidth = 14*scale;
+        var arrowLength = 8*scale;
+        var connectorThroat = 4*scale;
 
-        p.x -= cx;
-        p.y -= cy;
+        arr.push(new Point(-connectorThroat/2,maxLength-arrowLength));
+        arr.push(new Point(-arrowWidth/2,maxLength-arrowLength));
+        arr.push(new Point(0,maxLength));
+        arr.push(new Point(arrowWidth/2,maxLength-arrowLength));
+        arr.push(new Point(connectorThroat/2,maxLength-arrowLength));
+        arr.push(new Point(connectorThroat/2,connectorThroat/2));
 
-        var xnew:number = p.x*c-p.y*s;
-        var ynew:number = p.x*s+p.y*c;
+        arr.push(new Point(maxLength-arrowLength,connectorThroat/2));
+        arr.push(new Point(maxLength-arrowLength,arrowWidth/2));
+        arr.push(new Point(maxLength,0));
+        arr.push(new Point(maxLength-arrowLength,-arrowWidth/2));
+        arr.push(new Point(maxLength-arrowLength,-connectorThroat/2));
+        arr.push(new Point(connectorThroat/2,-connectorThroat/2));
 
-        p.x = xnew+cx;
-        p.y = ynew+cy;
+        arr.push(new Point(connectorThroat/2,-maxLength+arrowLength));
+        arr.push(new Point(arrowWidth/2,-maxLength+arrowLength));
+        arr.push(new Point(0,-maxLength));
+        arr.push(new Point(-arrowWidth/2,-maxLength+arrowLength));
+        arr.push(new Point(-connectorThroat/2,-maxLength+arrowLength));
+        arr.push(new Point(-connectorThroat/2,-connectorThroat/2));
 
-        return p;
+        arr.push(new Point(-maxLength+arrowLength,-connectorThroat/2));
+        arr.push(new Point(-maxLength+arrowLength,-arrowWidth/2));
+        arr.push(new Point(-maxLength,0));
+        arr.push(new Point(-maxLength+arrowLength,arrowWidth/2));
+        arr.push(new Point(-maxLength+arrowLength,connectorThroat/2));
+        arr.push(new Point(-connectorThroat/2,connectorThroat/2));
+
     }
 
-
-    drawConnector(ctx, angle,scale)
+    drawIcon(ctx, points:Array<Point>)
     {
-        angle*=CropService.DEG2RAD;
-
-        var c:Point = new Point(this.position.x,this.position.y);
-
-        var p1:Point =
-            this.rotatePoint(c.x,c.y,angle, new
-                Point(this.position.x-(2*scale),this.position.y+(9*scale)));
-        var p2:Point =
-            this.rotatePoint(c.x,c.y,angle,new
-                Point(this.position.x+(2*scale),this.position.y+(9*scale)));
-        var p3:Point =
-            this.rotatePoint(c.x,c.y,angle,new
-                Point(this.position.x+(2*scale),this.position.y-(9*scale)));
-        var p4:Point =
-            this.rotatePoint(c.x,c.y,angle,new
-                Point(this.position.x-(2*scale),this.position.y-(9*scale)));
-
         ctx.beginPath();
-        ctx.moveTo(p4.x,p4.y);
-        ctx.lineTo(p1.x,p1.y);
-        ctx.lineTo(p2.x,p2.y);
-        ctx.lineTo(p3.x,p3.y);
-        ctx.lineTo(p4.x,p4.y);
-        ctx.closePath();
-        ctx.fillStyle = 'rgba(255,228,0,1)';
-        ctx.fill();
-    }
+        ctx.moveTo(points[0].x+this.position.x,points[0].y+this.position.y);
 
-    drawArrow(ctx, angle, scale)
-    {
-        angle*=CropService.DEG2RAD;
+        for(var k = 0;k<points.length;k++)
+        {
+            var p:Point = points[k];
+            ctx.lineTo(p.x+this.position.x,p.y+this.position.y);
+        }
 
-        var c:Point = new Point(this.position.x,this.position.y);
-
-        var p1:Point =
-            this.rotatePoint(c.x,c.y,angle, new
-                Point(this.position.x-(5*scale),this.position.y+(8*scale)));
-        var p2:Point =
-            this.rotatePoint(c.x,c.y,angle,new
-                Point(this.position.x,this.position.y+(15*scale)));
-        var p3:Point =
-            this.rotatePoint(c.x,c.y,angle,new
-                Point(this.position.x+(5*scale),this.position.y+(8*scale)));
-        var p4:Point =
-            this.rotatePoint(c.x,c.y,angle,new
-                Point(this.position.x,this.position.y+(8*scale)));
-
-        ctx.beginPath();
-        ctx.moveTo(p4.x,p4.y);
-        ctx.lineTo(p1.x,p1.y);
-        ctx.lineTo(p2.x,p2.y);
-        ctx.lineTo(p3.x,p3.y);
-        ctx.lineTo(p4.x,p4.y);
         ctx.closePath();
         ctx.fillStyle = 'rgba(255,228,0,1)';
         ctx.fill();
@@ -232,7 +211,6 @@ class CornerMarker extends Handle
         ctx.lineJoin = "miter";
         ctx.moveTo(this.position.x,this.position.y);
         ctx.lineTo(this.position.x+(sideLength*hDirection),this.position.y);
-
         ctx.lineTo(this.position.x+(sideLength*hDirection),this.position.y+(sideLength*vDirection));
         ctx.lineTo(this.position.x,this.position.y+(sideLength*vDirection));
         ctx.lineTo(this.position.x,this.position.y);
@@ -267,7 +245,6 @@ class CornerMarker extends Handle
         ctx.beginPath();
         ctx.moveTo(this.position.x,this.position.y);
         ctx.lineTo(this.position.x+(sideLength*hDirection),this.position.y);
-
         ctx.lineTo(this.position.x+(sideLength*hDirection),this.position.y+(sideLength*vDirection));
         ctx.lineTo(this.position.x,this.position.y+(sideLength*vDirection));
         ctx.lineTo(this.position.x,this.position.y);
@@ -366,6 +343,21 @@ class Point
     }
 }
 
+class CropTouch
+{
+    x:number;
+    y:number;
+    id:number = 0;
+    dragHandle:Handle;
+
+    constructor(x:number = 0, y:number=0, id:number = 0)
+    {
+        this.x = x;
+        this.y = y;
+        this.id = id;
+    }
+}
+
 class ImageCropper
 {
     tl:CornerMarker;
@@ -378,7 +370,7 @@ class ImageCropper
     keepAspect:boolean = false;
     aspectRatio:number = 0;
     markers:Array<CornerMarker>;
-    handle = null;
+    currentDragTouches:Array<CropTouch> = new Array<CropTouch>();
     srcImage:HTMLImageElement;
     buffer:HTMLCanvasElement;
     cropCanvas:HTMLCanvasElement;
@@ -392,6 +384,9 @@ class ImageCropper
     minYClamp:number;
     maxYClamp:number;
     imageSet:boolean = false;
+    canvasWidth:number;
+    canvasHeight:number;
+    vertSquashRatio:number;
 
     constructor(canvas,x:number = 0, y:number = 0, width:number = 100, height:number = 50, keepAspect:boolean = true, touchRadius:number = 20)
     {
@@ -430,6 +425,10 @@ class ImageCropper
         window.addEventListener('mousemove',  this.onMouseMove.bind(this));
         window.addEventListener('mouseup', this.onMouseUp.bind(this)) ;
         canvas.addEventListener('mousedown', this.onMouseDown.bind(this)) ;
+
+        window.addEventListener('touchmove',  this.onTouchMove.bind(this), false);
+        canvas.addEventListener('touchstart', this.onTouchStart.bind(this),false) ;
+        window.addEventListener('touchend', this.onTouchEnd.bind(this), false) ;
     }
 
     public resizeCanvas(width:number, height:number)
@@ -447,22 +446,22 @@ class ImageCropper
 
         if(this.srcImage)
         {
-            ctx.clearRect(0, 0, this.canvas.width , this.canvas.height);
+            ctx.clearRect(0, 0, this.canvasWidth , this.canvasHeight);
             var sourceAspect = this.srcImage.height/this.srcImage.width;
-            var canvasAspect = this.canvas.height/this.canvas.width;
+            var canvasAspect = this.canvasHeight/this.canvasWidth;
 
-            var w = this.canvas.width;
-            var h = this.canvas.height;
+            var w = this.canvasWidth;
+            var h = this.canvasHeight;
 
             if(canvasAspect> sourceAspect)
             {
-                w = this.canvas.width;
-                h = this.canvas.width*sourceAspect;
+                w = this.canvasWidth;
+                h = this.canvasWidth*sourceAspect;
             }
             else
             {
-                h = this.canvas.height;
-                w = this.canvas.height/sourceAspect;
+                h = this.canvasHeight;
+                w = this.canvasHeight/sourceAspect;
             }
 
             this.ratioW = w/this.srcImage.width;
@@ -470,29 +469,21 @@ class ImageCropper
 
             if(canvasAspect< sourceAspect)
             {
-                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, this.buffer.width / 2 - w / 2, 0, w, h);
+                this.drawImageIOSFix(ctx,this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, this.buffer.width / 2 - w / 2, 0, w, h);
+                //ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, this.buffer.width / 2 - w / 2, 0, w, h);
             }
             else
             {
-                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, 0, this.buffer.height / 2 - h / 2, w, h);
+                this.drawImageIOSFix(ctx,this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, 0, this.buffer.height / 2 - h / 2, w, h);
+                //ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, 0, this.buffer.height / 2 - h / 2, w, h);
             }
 
 
-            this.buffer.getContext('2d').drawImage(this.canvas,0,0,this.canvas.width,this.canvas.height);
-
-            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-            if(canvasAspect< sourceAspect)
-            {
-                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, this.buffer.width / 2 - w /2, 0, w, h);
-            }
-            else
-            {
-                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, 0,this.buffer.height / 2 - h / 2, w, h);
-            }
+            this.buffer.getContext('2d').drawImage(this.canvas,0,0,this.canvasWidth,this.canvasHeight);
 
             ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+
             ctx.drawImage(this.buffer,bounds.left, bounds.top,
                 Math.max(bounds.getWidth(),1), Math.max(bounds.getHeight(),1),bounds.left,
                 bounds.top, bounds.getWidth(),bounds.getHeight());
@@ -700,65 +691,90 @@ class ImageCropper
         return NaN;
     }
 
-    handleRelease()
+    handleRelease(newCropTouch:CropTouch)
     {
-        if(this.handle)
+
+        var index = 0;
+        for(var k = 0; k< this.currentDragTouches.length;k++)
         {
-            this.handle.setDrag(false);
+            if(newCropTouch.id == this.currentDragTouches[k].id)
+            {
+                this.currentDragTouches[k].dragHandle.setDrag(false);
+                newCropTouch.dragHandle = null;
+                index = k;
+            }
         }
 
-        this.handle = null;
+        this.currentDragTouches.splice(index,1);
+        this.draw(this.ctx);
     }
 
-    handleMove(x:number,y:number)
+    handleMove(newCropTouch:CropTouch)
     {
-        if(this.handle!=null)
-        {
-            var clampedPositions =
-                this.clampPosition(x-this.handle.offset.x,y-this.handle.offset.y);
-            x = clampedPositions.x;
-            y = clampedPositions.y;
 
-            if(this.handle instanceof CornerMarker)
+        var matched:boolean = false;
+        for(var k = 0; k< this.currentDragTouches.length;k++)
+        {
+
+            if(newCropTouch.id==this.currentDragTouches[k].id && this.currentDragTouches[k].dragHandle!=null)
             {
-                this.dragCorner(x,y,this.handle);
-            }
-            else
-            {
-                this.dragCrop(x,y,this.handle)
+
+                var dragTouch = this.currentDragTouches[k];
+                var clampedPositions = this.clampPosition(newCropTouch.x-dragTouch.dragHandle.offset.x,newCropTouch.y-dragTouch.dragHandle.offset.y);
+                newCropTouch.x = clampedPositions.x;
+                newCropTouch.y = clampedPositions.y;
+
+                if(dragTouch.dragHandle instanceof CornerMarker)
+                {
+                    this.dragCorner(newCropTouch.x,newCropTouch.y,<CornerMarker>dragTouch.dragHandle);
+                }
+                else
+                {
+                    this.dragCrop(newCropTouch.x,newCropTouch.y,<DragMarker>dragTouch.dragHandle )
+                }
+
+                matched = true;
+                break;
             }
         }
-        else
+
+        //TODO NO MATCHES THUS IS A NEW TOUCH
+
+        if(!matched)
         {
             //give corners precedence so the crop area can always be expanded
             for(var i:number = 0; i<this.markers.length;i++)
             {
                 var marker:CornerMarker = this.markers[i];
 
-                if(marker.touchInBounds(x,y))
+                if(marker.touchInBounds(newCropTouch.x,newCropTouch.y))
                 {
-                    this.handle = marker;
+                    newCropTouch.dragHandle = marker;
+                    this.currentDragTouches.push(newCropTouch);
                     marker.setDrag(true);
-                    this.handle.offset.x = x-this.handle.position.x;
-                    this.handle.offset.y = y-this.handle.position.y;
-                    this.dragCorner(x-this.handle.offset.x,y-this.handle.offset.y,this.handle);
+                    newCropTouch.dragHandle.offset.x = newCropTouch.x-newCropTouch.dragHandle.getPosition().x;
+                    newCropTouch.dragHandle.offset.y = newCropTouch.y-newCropTouch.dragHandle.getPosition().y;
+                    this.dragCorner(newCropTouch.x-newCropTouch.dragHandle.offset.x,newCropTouch.y-newCropTouch.dragHandle.offset.y,<CornerMarker>newCropTouch.dragHandle);
                     break;
                 }
             }
 
-            if(this.handle==null)
+            if(newCropTouch.dragHandle==null)
             {
-                if(this.center.touchInBounds(x,y))
+                if(this.center.touchInBounds(newCropTouch.x,newCropTouch.y))
                 {
-                    this.handle = this.center;
-                    this.handle.setDrag(true);
-                    this.handle.offset.x = x-this.handle.position.x;
-                    this.handle.offset.y = y-this.handle.position.y;
-                    this.dragCrop(x- this.handle.offset.x,y-
-                    this.handle.offset.y,this.center);
+                    newCropTouch.dragHandle = this.center;
+                    this.currentDragTouches.push(newCropTouch);
+                    newCropTouch.dragHandle.setDrag(true);
+                    newCropTouch.dragHandle.offset.x = newCropTouch.x-newCropTouch.dragHandle.getPosition().x;
+                    newCropTouch.dragHandle.offset.y = newCropTouch.y-newCropTouch.dragHandle.getPosition().y;
+                    this.dragCrop(newCropTouch.x-newCropTouch.dragHandle.offset.x,newCropTouch.y-newCropTouch.dragHandle.offset.y,<DragMarker>newCropTouch.dragHandle);
                 }
             }
         }
+
+
+
     }
 
 
@@ -847,6 +863,8 @@ class ImageCropper
 
         var w = this.canvas.width;
         var h = this.canvas.height;
+        this.canvasWidth = w;
+        this.canvasHeight = h;
 
         var cX = this.canvas.width / 2;
         var cY = this.canvas.height / 2;
@@ -903,6 +921,7 @@ class ImageCropper
             }
         }
 
+        this.vertSquashRatio = this.detectVerticalSquash(img);
         this.draw(this.ctx);
     }
 
@@ -961,10 +980,9 @@ class ImageCropper
                 boundsMultiHeight = this.ratioH;
             }
 
-            this.cropCanvas.getContext('2d').drawImage(this.srcImage,Math.max(Math.round((bounds.left)/this.ratioW-offsetW),0),
+            this.drawImageIOSFix(this.cropCanvas.getContext('2d'),this.srcImage,Math.max(Math.round((bounds.left)/this.ratioW-offsetW),0),
                 Math.max(Math.round(bounds.top/this.ratioH-offsetH),0), Math.max(Math.round(bounds.getWidth()/boundsMultiWidth),1),
                 Math.max(Math.round(bounds.getHeight()/boundsMultiHeight),1),0, 0, fillWidth,fillHeight);
-
 
             this.croppedImage.width = fillWidth;
             this.croppedImage.height = fillHeight;
@@ -975,6 +993,7 @@ class ImageCropper
 
             this.cropCanvas.width = Math.max(bounds.getWidth(),1);
             this.cropCanvas.height = Math.max(bounds.getHeight(),1);
+
             this.cropCanvas.getContext('2d').drawImage(this.buffer,bounds.left,
                 bounds.top, Math.max(bounds.getWidth(),1),
                 Math.max(bounds.getHeight(),1),0, 0, bounds.getWidth(),bounds.getHeight());
@@ -1028,30 +1047,92 @@ class ImageCropper
         return bounds;
     }
 
-    getMousePos(canvas, evt)
+    getMousePos(canvas, evt:MouseEvent)
     {
         var rect = canvas.getBoundingClientRect();
-        return {
-            x: evt.clientX - rect.left,
-            y: evt.clientY - rect.top
-        };
+        return new Point(evt.clientX - rect.left, evt.clientY - rect.top);
+    }
+
+    getTouchPos(canvas, touch:Touch)
+    {
+        var rect = canvas.getBoundingClientRect();
+        return new Point(touch.clientX - rect.left, touch.clientY - rect.top);
+    }
+
+    onTouchMove(e:TouchEvent)
+    {
+        e.preventDefault();
+        if(e.touches.length>=1)
+        {
+            for(var i =0; i< e.touches.length;i++)
+            {
+                var touch:Touch = e.touches[i];
+                var touchPosition:Point = this.getTouchPos(this.canvas,touch);
+                var cropTouch = new CropTouch(touchPosition.x,touchPosition.y,touch.identifier);
+                this.move(cropTouch,e);
+            }
+        }
+
+        this.draw(this.ctx);
     }
 
     onMouseMove(e:MouseEvent)
     {
-        var mousePosition = this.getMousePos(this.canvas, e);
-        var cursorDrawn = false;
+        var mousePosition:Point = this.getMousePos(this.canvas, e);
 
-        if(this.handle==this.center)
+        this.move(new CropTouch(mousePosition.x,mousePosition.y,0),e);
+        var dragTouch:CropTouch = this.getDragTouchForID(0);
+        if(dragTouch)
         {
-            this.canvas.style.cursor = 'move';
-            cursorDrawn = true;
+            dragTouch.x = mousePosition.x;
+            dragTouch.y = mousePosition.y;
+        }
+        else
+        {
+            dragTouch = new CropTouch(mousePosition.x,mousePosition.y,0);
+        }
+        this.drawCursors(dragTouch, e);
+        this.draw(this.ctx);
+    }
+
+    move(cropTouch:CropTouch, e:Event)
+    {
+        if(this.isMouseDown)
+        {
+            this.handleMove(cropTouch);
+        }
+    }
+
+
+    getDragTouchForID(id:number):CropTouch
+    {
+        for(var i = 0;i<this.currentDragTouches.length;i++)
+        {
+            if(id==this.currentDragTouches[i].id)
+            {
+                return this.currentDragTouches[i];
+            }
         }
 
-        if(this.handle!=null && this.handle instanceof CornerMarker)
+    }
+
+    drawCursors(cropTouch:CropTouch,e:Event)
+    {
+        var cursorDrawn = false;
+
+
+        if(cropTouch!=null)
         {
-            this.drawCornerCursor(this.handle,mousePosition.x,mousePosition.y,e);
-            cursorDrawn = true;
+
+            if (cropTouch.dragHandle == this.center) {
+                this.canvas.style.cursor = 'move';
+                cursorDrawn = true;
+            }
+
+            if (cropTouch.dragHandle != null && cropTouch.dragHandle instanceof CornerMarker) {
+                this.drawCornerCursor(<CornerMarker>cropTouch.dragHandle, cropTouch.x, cropTouch.y, e);
+                cursorDrawn = true;
+            }
         }
 
         var didDraw = false;
@@ -1061,7 +1142,7 @@ class ImageCropper
             for (var i:number = 0; i < this.markers.length; i++)
             {
                 didDraw = didDraw ||
-                this.drawCornerCursor(this.markers[i],mousePosition.x,mousePosition.y,e);
+                this.drawCornerCursor(this.markers[i],cropTouch.x,cropTouch.y,e);
             }
 
             if(!didDraw)
@@ -1071,7 +1152,7 @@ class ImageCropper
             }
         }
 
-        if (!didDraw && !cursorDrawn && this.center.touchInBounds(mousePosition.x, mousePosition.y))
+        if (!didDraw && !cursorDrawn && this.center.touchInBounds(cropTouch.x, cropTouch.y))
         {
             this.center.setOver(true);
             this.canvas.style.cursor = 'move';
@@ -1080,18 +1161,9 @@ class ImageCropper
         {
             this.center.setOver(false);
         }
-
-        this.draw(this.ctx);
-
-        if(!this.isMouseDown)
-        {
-            return;
-        }
-
-        this.handleMove(mousePosition.x,mousePosition.y);
     }
 
-    drawCornerCursor(marker:CornerMarker, x:number, y:number, e:MouseEvent)
+    drawCornerCursor(marker:CornerMarker, x:number, y:number, e:Event)
     {
         var el:HTMLElement;
 
@@ -1142,9 +1214,77 @@ class ImageCropper
         this.isMouseDown = true;
     }
 
+    onTouchStart(e:TouchEvent)
+    {
+        this.isMouseDown = true;
+    }
+
+    onTouchEnd(e:TouchEvent)
+    {
+        for(var i =0; i< e.changedTouches.length;i++)
+        {
+            var touch:Touch = e.changedTouches[i];
+            var dragTouch:CropTouch = this.getDragTouchForID(touch.identifier);
+
+            if(dragTouch.dragHandle instanceof CornerMarker || dragTouch.dragHandle instanceof DragMarker)
+            {
+                dragTouch.dragHandle.setOver(false);
+            }
+
+            this.handleRelease(dragTouch);
+        }
+
+        if(this.currentDragTouches.length==0)
+        {
+            this.isMouseDown = false;
+        }
+    }
+
     onMouseUp(e:MouseEvent)
     {
-        this.isMouseDown = false;
-        this.handleRelease();
+        this.handleRelease(new CropTouch(0,0,0));
+
+        if(this.currentDragTouches.length==0)
+        {
+            this.isMouseDown = false;
+        }
+
+    }
+
+    //http://stackoverflow.com/questions/11929099/html5-canvas-drawimage-ratio-bug-ios
+    drawImageIOSFix(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh)
+    {
+        // Works only if whole image is displayed:
+        // ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh / vertSquashRatio);
+        // The following works correct also when only a part of the image is displayed:
+        ctx.drawImage(img, sx * this.vertSquashRatio, sy * this.vertSquashRatio,
+            sw * this.vertSquashRatio, sh * this.vertSquashRatio,
+            dx, dy, dw, dh );
+    }
+
+    detectVerticalSquash(img)
+    {
+        var iw = img.naturalWidth, ih = img.naturalHeight;
+        var canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = ih;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        var data = ctx.getImageData(0, 0, 1, ih).data;
+        // search image edge pixel position in case it is squashed vertically.
+        var sy = 0;
+        var ey = ih;
+        var py = ih;
+        while (py > sy) {
+            var alpha = data[(py - 1) * 4 + 3];
+            if (alpha === 0) {
+                ey = py;
+            } else {
+                sy = py;
+            }
+            py = (ey + sy) >> 1;
+        }
+        var ratio = (py / ih);
+        return (ratio===0)?1:ratio;
     }
 }

@@ -1,6 +1,6 @@
 # Image Cropper
 
-An HTML5 image cropping tool. Features a rectangular crop area. The crop area's aspect ratio can be enforced during dragging. The crop image can either be 1:1 or scaled to fit an area.
+An HTML5 image cropping tool. Features a rectangular crop area. The crop area's aspect ratio can be enforced during dragging. The crop image can either be 1:1 or scaled to fit an area. Also supports multitouch on touch supported devices.
 
 ## Screenshot
 
@@ -8,11 +8,11 @@ An HTML5 image cropping tool. Features a rectangular crop area. The crop area's 
 
 ## Live demo
 
-[Live demo on JSBin](http://jsbin.com/pajiha/3/edit?html,js,output)
+[Live demo on JSBin](http://jsbin.com/pajiha/44/edit?html,js,output)
 
 ## Requirements
 
- - Modern Browser supporting ```<canvas>```
+ - A modern browser (mobile or desktop) supporting ```<canvas>```
 
 ## Installing
 

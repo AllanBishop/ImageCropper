@@ -1,3 +1,9 @@
+var __extends = this.__extends || function (d, b) {
+    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
+    function __() { this.constructor = d; }
+    __.prototype = b.prototype;
+    d.prototype = new __();
+};
 /**
  * Copyright (c) 2015 Allan Bishop http://www.allanbishop.com
  *
@@ -22,12 +28,7 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  **/
-var __extends = this.__extends || function (d, b) {
-    for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
-    function __() { this.constructor = d; }
-    __.prototype = b.prototype;
-    d.prototype = new __();
-};
+/// <reference path="touch-events.d.ts" />
 var Handle = (function () {
     function Handle(x, y, radius) {
         this.over = false;
@@ -38,7 +39,7 @@ var Handle = (function () {
     }
     Handle.prototype.setDrag = function (value) {
         this.drag = value;
-        this.over = value;
+        this.setOver(value);
     };
     Handle.prototype.draw = function (ctx) {
     };
@@ -70,60 +71,56 @@ var DragMarker = (function (_super) {
     __extends(DragMarker, _super);
     function DragMarker(x, y, radius) {
         _super.call(this, x, y, radius);
+        this.iconPoints = new Array();
+        this.scaledIconPoints = new Array();
+        this.getDragIconPoints(this.iconPoints, 1);
+        this.getDragIconPoints(this.scaledIconPoints, 1.2);
     }
     DragMarker.prototype.draw = function (ctx) {
-        var scale = 1;
         if (this.over || this.drag) {
-            scale = 1.2;
+            this.drawIcon(ctx, this.scaledIconPoints);
         }
-        this.drawConnector(ctx, 90, scale);
-        this.drawConnector(ctx, 0, scale);
-        this.drawArrow(ctx, 0, scale);
-        this.drawArrow(ctx, 90, scale);
-        this.drawArrow(ctx, 180, scale);
-        this.drawArrow(ctx, 270, scale);
+        else {
+            this.drawIcon(ctx, this.iconPoints);
+        }
     };
-    DragMarker.prototype.rotatePoint = function (cx, cy, angle, p) {
-        var s = Math.sin(angle);
-        var c = Math.cos(angle);
-        p.x -= cx;
-        p.y -= cy;
-        var xnew = p.x * c - p.y * s;
-        var ynew = p.x * s + p.y * c;
-        p.x = xnew + cx;
-        p.y = ynew + cy;
-        return p;
+    DragMarker.prototype.getDragIconPoints = function (arr, scale) {
+        var maxLength = 17 * scale;
+        var arrowWidth = 14 * scale;
+        var arrowLength = 8 * scale;
+        var connectorThroat = 4 * scale;
+        arr.push(new Point(-connectorThroat / 2, maxLength - arrowLength));
+        arr.push(new Point(-arrowWidth / 2, maxLength - arrowLength));
+        arr.push(new Point(0, maxLength));
+        arr.push(new Point(arrowWidth / 2, maxLength - arrowLength));
+        arr.push(new Point(connectorThroat / 2, maxLength - arrowLength));
+        arr.push(new Point(connectorThroat / 2, connectorThroat / 2));
+        arr.push(new Point(maxLength - arrowLength, connectorThroat / 2));
+        arr.push(new Point(maxLength - arrowLength, arrowWidth / 2));
+        arr.push(new Point(maxLength, 0));
+        arr.push(new Point(maxLength - arrowLength, -arrowWidth / 2));
+        arr.push(new Point(maxLength - arrowLength, -connectorThroat / 2));
+        arr.push(new Point(connectorThroat / 2, -connectorThroat / 2));
+        arr.push(new Point(connectorThroat / 2, -maxLength + arrowLength));
+        arr.push(new Point(arrowWidth / 2, -maxLength + arrowLength));
+        arr.push(new Point(0, -maxLength));
+        arr.push(new Point(-arrowWidth / 2, -maxLength + arrowLength));
+        arr.push(new Point(-connectorThroat / 2, -maxLength + arrowLength));
+        arr.push(new Point(-connectorThroat / 2, -connectorThroat / 2));
+        arr.push(new Point(-maxLength + arrowLength, -connectorThroat / 2));
+        arr.push(new Point(-maxLength + arrowLength, -arrowWidth / 2));
+        arr.push(new Point(-maxLength, 0));
+        arr.push(new Point(-maxLength + arrowLength, arrowWidth / 2));
+        arr.push(new Point(-maxLength + arrowLength, connectorThroat / 2));
+        arr.push(new Point(-connectorThroat / 2, connectorThroat / 2));
     };
-    DragMarker.prototype.drawConnector = function (ctx, angle, scale) {
-        angle *= CropService.DEG2RAD;
-        var c = new Point(this.position.x, this.position.y);
-        var p1 = this.rotatePoint(c.x, c.y, angle, new Point(this.position.x - (2 * scale), this.position.y + (9 * scale)));
-        var p2 = this.rotatePoint(c.x, c.y, angle, new Point(this.position.x + (2 * scale), this.position.y + (9 * scale)));
-        var p3 = this.rotatePoint(c.x, c.y, angle, new Point(this.position.x + (2 * scale), this.position.y - (9 * scale)));
-        var p4 = this.rotatePoint(c.x, c.y, angle, new Point(this.position.x - (2 * scale), this.position.y - (9 * scale)));
+    DragMarker.prototype.drawIcon = function (ctx, points) {
         ctx.beginPath();
-        ctx.moveTo(p4.x, p4.y);
-        ctx.lineTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.lineTo(p3.x, p3.y);
-        ctx.lineTo(p4.x, p4.y);
-        ctx.closePath();
-        ctx.fillStyle = 'rgba(255,228,0,1)';
-        ctx.fill();
-    };
-    DragMarker.prototype.drawArrow = function (ctx, angle, scale) {
-        angle *= CropService.DEG2RAD;
-        var c = new Point(this.position.x, this.position.y);
-        var p1 = this.rotatePoint(c.x, c.y, angle, new Point(this.position.x - (5 * scale), this.position.y + (8 * scale)));
-        var p2 = this.rotatePoint(c.x, c.y, angle, new Point(this.position.x, this.position.y + (15 * scale)));
-        var p3 = this.rotatePoint(c.x, c.y, angle, new Point(this.position.x + (5 * scale), this.position.y + (8 * scale)));
-        var p4 = this.rotatePoint(c.x, c.y, angle, new Point(this.position.x, this.position.y + (8 * scale)));
-        ctx.beginPath();
-        ctx.moveTo(p4.x, p4.y);
-        ctx.lineTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.lineTo(p3.x, p3.y);
-        ctx.lineTo(p4.x, p4.y);
+        ctx.moveTo(points[0].x + this.position.x, points[0].y + this.position.y);
+        for (var k = 0; k < points.length; k++) {
+            var p = points[k];
+            ctx.lineTo(p.x + this.position.x, p.y + this.position.y);
+        }
         ctx.closePath();
         ctx.fillStyle = 'rgba(255,228,0,1)';
         ctx.fill();
@@ -249,6 +246,18 @@ var Point = (function () {
     }
     return Point;
 })();
+var CropTouch = (function () {
+    function CropTouch(x, y, id) {
+        if (x === void 0) { x = 0; }
+        if (y === void 0) { y = 0; }
+        if (id === void 0) { id = 0; }
+        this.id = 0;
+        this.x = x;
+        this.y = y;
+        this.id = id;
+    }
+    return CropTouch;
+})();
 var ImageCropper = (function () {
     function ImageCropper(canvas, x, y, width, height, keepAspect, touchRadius) {
         if (x === void 0) { x = 0; }
@@ -259,7 +268,7 @@ var ImageCropper = (function () {
         if (touchRadius === void 0) { touchRadius = 20; }
         this.keepAspect = false;
         this.aspectRatio = 0;
-        this.handle = null;
+        this.currentDragTouches = new Array();
         this.isMouseDown = false;
         this.ratioW = 1;
         this.ratioH = 1;
@@ -293,6 +302,9 @@ var ImageCropper = (function () {
         window.addEventListener('mousemove', this.onMouseMove.bind(this));
         window.addEventListener('mouseup', this.onMouseUp.bind(this));
         canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
+        window.addEventListener('touchmove', this.onTouchMove.bind(this), false);
+        canvas.addEventListener('touchstart', this.onTouchStart.bind(this), false);
+        window.addEventListener('touchend', this.onTouchEnd.bind(this), false);
     }
     ImageCropper.prototype.resizeCanvas = function (width, height) {
         this.canvas.width = width;
@@ -304,37 +316,30 @@ var ImageCropper = (function () {
     ImageCropper.prototype.draw = function (ctx) {
         var bounds = this.getBounds();
         if (this.srcImage) {
-            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            ctx.clearRect(0, 0, this.canvasWidth, this.canvasHeight);
             var sourceAspect = this.srcImage.height / this.srcImage.width;
-            var canvasAspect = this.canvas.height / this.canvas.width;
-            var w = this.canvas.width;
-            var h = this.canvas.height;
+            var canvasAspect = this.canvasHeight / this.canvasWidth;
+            var w = this.canvasWidth;
+            var h = this.canvasHeight;
             if (canvasAspect > sourceAspect) {
-                w = this.canvas.width;
-                h = this.canvas.width * sourceAspect;
+                w = this.canvasWidth;
+                h = this.canvasWidth * sourceAspect;
             }
             else {
-                h = this.canvas.height;
-                w = this.canvas.height / sourceAspect;
+                h = this.canvasHeight;
+                w = this.canvasHeight / sourceAspect;
             }
             this.ratioW = w / this.srcImage.width;
             this.ratioH = h / this.srcImage.height;
             if (canvasAspect < sourceAspect) {
-                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, this.buffer.width / 2 - w / 2, 0, w, h);
+                this.drawImageIOSFix(ctx, this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, this.buffer.width / 2 - w / 2, 0, w, h);
             }
             else {
-                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, 0, this.buffer.height / 2 - h / 2, w, h);
+                this.drawImageIOSFix(ctx, this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, 0, this.buffer.height / 2 - h / 2, w, h);
             }
-            this.buffer.getContext('2d').drawImage(this.canvas, 0, 0, this.canvas.width, this.canvas.height);
-            ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-            if (canvasAspect < sourceAspect) {
-                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, this.buffer.width / 2 - w / 2, 0, w, h);
-            }
-            else {
-                ctx.drawImage(this.srcImage, 0, 0, this.srcImage.width, this.srcImage.height, 0, this.buffer.height / 2 - h / 2, w, h);
-            }
+            this.buffer.getContext('2d').drawImage(this.canvas, 0, 0, this.canvasWidth, this.canvasHeight);
             ctx.fillStyle = "rgba(0, 0, 0, 0.7)";
-            ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
             ctx.drawImage(this.buffer, bounds.left, bounds.top, Math.max(bounds.getWidth(), 1), Math.max(bounds.getHeight(), 1), bounds.left, bounds.top, bounds.getWidth(), bounds.getHeight());
             var marker;
             for (var i = 0; i < this.markers.length; i++) {
@@ -489,43 +494,58 @@ var ImageCropper = (function () {
         }
         return NaN;
     };
-    ImageCropper.prototype.handleRelease = function () {
-        if (this.handle) {
-            this.handle.setDrag(false);
+    ImageCropper.prototype.handleRelease = function (newCropTouch) {
+        var index = 0;
+        for (var k = 0; k < this.currentDragTouches.length; k++) {
+            if (newCropTouch.id == this.currentDragTouches[k].id) {
+                this.currentDragTouches[k].dragHandle.setDrag(false);
+                newCropTouch.dragHandle = null;
+                index = k;
+            }
         }
-        this.handle = null;
+        this.currentDragTouches.splice(index, 1);
+        this.draw(this.ctx);
     };
-    ImageCropper.prototype.handleMove = function (x, y) {
-        if (this.handle != null) {
-            var clampedPositions = this.clampPosition(x - this.handle.offset.x, y - this.handle.offset.y);
-            x = clampedPositions.x;
-            y = clampedPositions.y;
-            if (this.handle instanceof CornerMarker) {
-                this.dragCorner(x, y, this.handle);
-            }
-            else {
-                this.dragCrop(x, y, this.handle);
+    ImageCropper.prototype.handleMove = function (newCropTouch) {
+        var matched = false;
+        for (var k = 0; k < this.currentDragTouches.length; k++) {
+            if (newCropTouch.id == this.currentDragTouches[k].id && this.currentDragTouches[k].dragHandle != null) {
+                var dragTouch = this.currentDragTouches[k];
+                var clampedPositions = this.clampPosition(newCropTouch.x - dragTouch.dragHandle.offset.x, newCropTouch.y - dragTouch.dragHandle.offset.y);
+                newCropTouch.x = clampedPositions.x;
+                newCropTouch.y = clampedPositions.y;
+                if (dragTouch.dragHandle instanceof CornerMarker) {
+                    this.dragCorner(newCropTouch.x, newCropTouch.y, dragTouch.dragHandle);
+                }
+                else {
+                    this.dragCrop(newCropTouch.x, newCropTouch.y, dragTouch.dragHandle);
+                }
+                matched = true;
+                break;
             }
         }
-        else {
+        //TODO NO MATCHES THUS IS A NEW TOUCH
+        if (!matched) {
             for (var i = 0; i < this.markers.length; i++) {
                 var marker = this.markers[i];
-                if (marker.touchInBounds(x, y)) {
-                    this.handle = marker;
+                if (marker.touchInBounds(newCropTouch.x, newCropTouch.y)) {
+                    newCropTouch.dragHandle = marker;
+                    this.currentDragTouches.push(newCropTouch);
                     marker.setDrag(true);
-                    this.handle.offset.x = x - this.handle.position.x;
-                    this.handle.offset.y = y - this.handle.position.y;
-                    this.dragCorner(x - this.handle.offset.x, y - this.handle.offset.y, this.handle);
+                    newCropTouch.dragHandle.offset.x = newCropTouch.x - newCropTouch.dragHandle.getPosition().x;
+                    newCropTouch.dragHandle.offset.y = newCropTouch.y - newCropTouch.dragHandle.getPosition().y;
+                    this.dragCorner(newCropTouch.x - newCropTouch.dragHandle.offset.x, newCropTouch.y - newCropTouch.dragHandle.offset.y, newCropTouch.dragHandle);
                     break;
                 }
             }
-            if (this.handle == null) {
-                if (this.center.touchInBounds(x, y)) {
-                    this.handle = this.center;
-                    this.handle.setDrag(true);
-                    this.handle.offset.x = x - this.handle.position.x;
-                    this.handle.offset.y = y - this.handle.position.y;
-                    this.dragCrop(x - this.handle.offset.x, y - this.handle.offset.y, this.center);
+            if (newCropTouch.dragHandle == null) {
+                if (this.center.touchInBounds(newCropTouch.x, newCropTouch.y)) {
+                    newCropTouch.dragHandle = this.center;
+                    this.currentDragTouches.push(newCropTouch);
+                    newCropTouch.dragHandle.setDrag(true);
+                    newCropTouch.dragHandle.offset.x = newCropTouch.x - newCropTouch.dragHandle.getPosition().x;
+                    newCropTouch.dragHandle.offset.y = newCropTouch.y - newCropTouch.dragHandle.getPosition().y;
+                    this.dragCrop(newCropTouch.x - newCropTouch.dragHandle.offset.x, newCropTouch.y - newCropTouch.dragHandle.offset.y, newCropTouch.dragHandle);
                 }
             }
         }
@@ -586,6 +606,8 @@ var ImageCropper = (function () {
         var cropAspect = cropBounds.getHeight() / cropBounds.getWidth();
         var w = this.canvas.width;
         var h = this.canvas.height;
+        this.canvasWidth = w;
+        this.canvasHeight = h;
         var cX = this.canvas.width / 2;
         var cY = this.canvas.height / 2;
         var tlPos = new Point(cX - cropBounds.getWidth() / 2, cY + cropBounds.getHeight() / 2);
@@ -625,6 +647,7 @@ var ImageCropper = (function () {
                 this.br.setPosition(brPos.x, brPos.y);
             }
         }
+        this.vertSquashRatio = this.detectVerticalSquash(img);
         this.draw(this.ctx);
     };
     ImageCropper.prototype.getCroppedImage = function (fillWidth, fillHeight) {
@@ -663,7 +686,7 @@ var ImageCropper = (function () {
             if (this.ratioH < 1) {
                 boundsMultiHeight = this.ratioH;
             }
-            this.cropCanvas.getContext('2d').drawImage(this.srcImage, Math.max(Math.round((bounds.left) / this.ratioW - offsetW), 0), Math.max(Math.round(bounds.top / this.ratioH - offsetH), 0), Math.max(Math.round(bounds.getWidth() / boundsMultiWidth), 1), Math.max(Math.round(bounds.getHeight() / boundsMultiHeight), 1), 0, 0, fillWidth, fillHeight);
+            this.drawImageIOSFix(this.cropCanvas.getContext('2d'), this.srcImage, Math.max(Math.round((bounds.left) / this.ratioW - offsetW), 0), Math.max(Math.round(bounds.top / this.ratioH - offsetH), 0), Math.max(Math.round(bounds.getWidth() / boundsMultiWidth), 1), Math.max(Math.round(bounds.getHeight() / boundsMultiHeight), 1), 0, 0, fillWidth, fillHeight);
             this.croppedImage.width = fillWidth;
             this.croppedImage.height = fillHeight;
         }
@@ -706,44 +729,79 @@ var ImageCropper = (function () {
     };
     ImageCropper.prototype.getMousePos = function (canvas, evt) {
         var rect = canvas.getBoundingClientRect();
-        return {
-            x: evt.clientX - rect.left,
-            y: evt.clientY - rect.top
-        };
+        return new Point(evt.clientX - rect.left, evt.clientY - rect.top);
+    };
+    ImageCropper.prototype.getTouchPos = function (canvas, touch) {
+        var rect = canvas.getBoundingClientRect();
+        return new Point(touch.clientX - rect.left, touch.clientY - rect.top);
+    };
+    ImageCropper.prototype.onTouchMove = function (e) {
+        e.preventDefault();
+        if (e.touches.length >= 1) {
+            for (var i = 0; i < e.touches.length; i++) {
+                var touch = e.touches[i];
+                var touchPosition = this.getTouchPos(this.canvas, touch);
+                var cropTouch = new CropTouch(touchPosition.x, touchPosition.y, touch.identifier);
+                this.move(cropTouch, e);
+            }
+        }
+        this.draw(this.ctx);
     };
     ImageCropper.prototype.onMouseMove = function (e) {
         var mousePosition = this.getMousePos(this.canvas, e);
-        var cursorDrawn = false;
-        if (this.handle == this.center) {
-            this.canvas.style.cursor = 'move';
-            cursorDrawn = true;
+        this.move(new CropTouch(mousePosition.x, mousePosition.y, 0), e);
+        var dragTouch = this.getDragTouchForID(0);
+        if (dragTouch) {
+            dragTouch.x = mousePosition.x;
+            dragTouch.y = mousePosition.y;
         }
-        if (this.handle != null && this.handle instanceof CornerMarker) {
-            this.drawCornerCursor(this.handle, mousePosition.x, mousePosition.y, e);
-            cursorDrawn = true;
+        else {
+            dragTouch = new CropTouch(mousePosition.x, mousePosition.y, 0);
+        }
+        this.drawCursors(dragTouch, e);
+        this.draw(this.ctx);
+    };
+    ImageCropper.prototype.move = function (cropTouch, e) {
+        if (this.isMouseDown) {
+            this.handleMove(cropTouch);
+        }
+    };
+    ImageCropper.prototype.getDragTouchForID = function (id) {
+        for (var i = 0; i < this.currentDragTouches.length; i++) {
+            if (id == this.currentDragTouches[i].id) {
+                return this.currentDragTouches[i];
+            }
+        }
+    };
+    ImageCropper.prototype.drawCursors = function (cropTouch, e) {
+        var cursorDrawn = false;
+        if (cropTouch != null) {
+            if (cropTouch.dragHandle == this.center) {
+                this.canvas.style.cursor = 'move';
+                cursorDrawn = true;
+            }
+            if (cropTouch.dragHandle != null && cropTouch.dragHandle instanceof CornerMarker) {
+                this.drawCornerCursor(cropTouch.dragHandle, cropTouch.x, cropTouch.y, e);
+                cursorDrawn = true;
+            }
         }
         var didDraw = false;
         if (!cursorDrawn) {
             for (var i = 0; i < this.markers.length; i++) {
-                didDraw = didDraw || this.drawCornerCursor(this.markers[i], mousePosition.x, mousePosition.y, e);
+                didDraw = didDraw || this.drawCornerCursor(this.markers[i], cropTouch.x, cropTouch.y, e);
             }
             if (!didDraw) {
                 var el = e.target;
                 el.style.cursor = 'initial';
             }
         }
-        if (!didDraw && !cursorDrawn && this.center.touchInBounds(mousePosition.x, mousePosition.y)) {
+        if (!didDraw && !cursorDrawn && this.center.touchInBounds(cropTouch.x, cropTouch.y)) {
             this.center.setOver(true);
             this.canvas.style.cursor = 'move';
         }
         else {
             this.center.setOver(false);
         }
-        this.draw(this.ctx);
-        if (!this.isMouseDown) {
-            return;
-        }
-        this.handleMove(mousePosition.x, mousePosition.y);
     };
     ImageCropper.prototype.drawCornerCursor = function (marker, x, y, e) {
         var el;
@@ -777,9 +835,59 @@ var ImageCropper = (function () {
     ImageCropper.prototype.onMouseDown = function (e) {
         this.isMouseDown = true;
     };
+    ImageCropper.prototype.onTouchStart = function (e) {
+        this.isMouseDown = true;
+    };
+    ImageCropper.prototype.onTouchEnd = function (e) {
+        for (var i = 0; i < e.changedTouches.length; i++) {
+            var touch = e.changedTouches[i];
+            var dragTouch = this.getDragTouchForID(touch.identifier);
+            if (dragTouch.dragHandle instanceof CornerMarker || dragTouch.dragHandle instanceof DragMarker) {
+                dragTouch.dragHandle.setOver(false);
+            }
+            this.handleRelease(dragTouch);
+        }
+        if (this.currentDragTouches.length == 0) {
+            this.isMouseDown = false;
+        }
+    };
     ImageCropper.prototype.onMouseUp = function (e) {
-        this.isMouseDown = false;
-        this.handleRelease();
+        this.handleRelease(new CropTouch(0, 0, 0));
+        if (this.currentDragTouches.length == 0) {
+            this.isMouseDown = false;
+        }
+    };
+    //http://stackoverflow.com/questions/11929099/html5-canvas-drawimage-ratio-bug-ios
+    ImageCropper.prototype.drawImageIOSFix = function (ctx, img, sx, sy, sw, sh, dx, dy, dw, dh) {
+        // Works only if whole image is displayed:
+        // ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh / vertSquashRatio);
+        // The following works correct also when only a part of the image is displayed:
+        ctx.drawImage(img, sx * this.vertSquashRatio, sy * this.vertSquashRatio, sw * this.vertSquashRatio, sh * this.vertSquashRatio, dx, dy, dw, dh);
+    };
+    ImageCropper.prototype.detectVerticalSquash = function (img) {
+        var iw = img.naturalWidth, ih = img.naturalHeight;
+        var canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = ih;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        var data = ctx.getImageData(0, 0, 1, ih).data;
+        // search image edge pixel position in case it is squashed vertically.
+        var sy = 0;
+        var ey = ih;
+        var py = ih;
+        while (py > sy) {
+            var alpha = data[(py - 1) * 4 + 3];
+            if (alpha === 0) {
+                ey = py;
+            }
+            else {
+                sy = py;
+            }
+            py = (ey + sy) >> 1;
+        }
+        var ratio = (py / ih);
+        return (ratio === 0) ? 1 : ratio;
     };
     return ImageCropper;
 })();
