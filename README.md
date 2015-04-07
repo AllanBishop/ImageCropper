@@ -8,7 +8,7 @@ An HTML5 image cropping tool. Features a rectangular crop area. The crop area's 
 
 ## Live demo
 
-[Live demo on JSBin](http://jsbin.com/pajiha/44/edit?html,js,output)
+[Live demo on JSBin](http://jsbin.com/pajiha/45/edit?html,js,output)
 
 ## Requirements
 
