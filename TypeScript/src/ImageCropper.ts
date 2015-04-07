@@ -68,8 +68,61 @@ class Handle
 
     setPosition(x:number, y:number)
     {
-        this.position = new Point(x,y);
+        this.position.x = x;
+        this.position.y = y;
     }
+}
+
+class PointPool
+{
+    public static instance:PointPool;
+    firstAvailable:Point;
+    borrowed = 0;//for debugging
+    constructor(inst:Number)
+    {
+        PointPool.instance = this;
+        var prev:Point = null;
+
+        for(var i = 0;i<inst;i++)
+        {
+            if(i===0)
+            {
+                this.firstAvailable = new Point();
+                prev = this.firstAvailable;
+            }
+            else
+            {
+                var p:Point = new Point();
+                prev.setNext(p);
+                prev = p;
+            }
+        }
+    }
+
+    borrow(x:number,y:number):Point
+    {
+        if(this.firstAvailable==null)
+        {
+            throw "Pool exhausted";
+        }
+        this.borrowed++;
+        var p:Point = this.firstAvailable;
+        this.firstAvailable = p.getNext();
+        p.x = x;
+        p.y = y;
+        return p;
+    }
+
+    returnPoint(p:Point):void
+    {
+        this.borrowed--;
+        p.x = 0;
+        p.y = 0;
+        p.setNext(this.firstAvailable);
+        this.firstAvailable = p;
+    }
+
+
 }
 
 class CropService
@@ -121,33 +174,33 @@ class DragMarker extends Handle
         var arrowLength = 8*scale;
         var connectorThroat = 4*scale;
 
-        arr.push(new Point(-connectorThroat/2,maxLength-arrowLength));
-        arr.push(new Point(-arrowWidth/2,maxLength-arrowLength));
-        arr.push(new Point(0,maxLength));
-        arr.push(new Point(arrowWidth/2,maxLength-arrowLength));
-        arr.push(new Point(connectorThroat/2,maxLength-arrowLength));
-        arr.push(new Point(connectorThroat/2,connectorThroat/2));
+        arr.push(PointPool.instance.borrow(-connectorThroat/2,maxLength-arrowLength));
+        arr.push(PointPool.instance.borrow(-arrowWidth/2,maxLength-arrowLength));
+        arr.push(PointPool.instance.borrow(0,maxLength));
+        arr.push(PointPool.instance.borrow(arrowWidth/2,maxLength-arrowLength));
+        arr.push(PointPool.instance.borrow(connectorThroat/2,maxLength-arrowLength));
+        arr.push(PointPool.instance.borrow(connectorThroat/2,connectorThroat/2));
 
-        arr.push(new Point(maxLength-arrowLength,connectorThroat/2));
-        arr.push(new Point(maxLength-arrowLength,arrowWidth/2));
-        arr.push(new Point(maxLength,0));
-        arr.push(new Point(maxLength-arrowLength,-arrowWidth/2));
-        arr.push(new Point(maxLength-arrowLength,-connectorThroat/2));
-        arr.push(new Point(connectorThroat/2,-connectorThroat/2));
+        arr.push(PointPool.instance.borrow(maxLength-arrowLength,connectorThroat/2));
+        arr.push(PointPool.instance.borrow(maxLength-arrowLength,arrowWidth/2));
+        arr.push(PointPool.instance.borrow(maxLength,0));
+        arr.push(PointPool.instance.borrow(maxLength-arrowLength,-arrowWidth/2));
+        arr.push(PointPool.instance.borrow(maxLength-arrowLength,-connectorThroat/2));
+        arr.push(PointPool.instance.borrow(connectorThroat/2,-connectorThroat/2));
 
-        arr.push(new Point(connectorThroat/2,-maxLength+arrowLength));
-        arr.push(new Point(arrowWidth/2,-maxLength+arrowLength));
-        arr.push(new Point(0,-maxLength));
-        arr.push(new Point(-arrowWidth/2,-maxLength+arrowLength));
-        arr.push(new Point(-connectorThroat/2,-maxLength+arrowLength));
-        arr.push(new Point(-connectorThroat/2,-connectorThroat/2));
+        arr.push(PointPool.instance.borrow(connectorThroat/2,-maxLength+arrowLength));
+        arr.push(PointPool.instance.borrow(arrowWidth/2,-maxLength+arrowLength));
+        arr.push(PointPool.instance.borrow(0,-maxLength));
+        arr.push(PointPool.instance.borrow(-arrowWidth/2,-maxLength+arrowLength));
+        arr.push(PointPool.instance.borrow(-connectorThroat/2,-maxLength+arrowLength));
+        arr.push(PointPool.instance.borrow(-connectorThroat/2,-connectorThroat/2));
 
-        arr.push(new Point(-maxLength+arrowLength,-connectorThroat/2));
-        arr.push(new Point(-maxLength+arrowLength,-arrowWidth/2));
-        arr.push(new Point(-maxLength,0));
-        arr.push(new Point(-maxLength+arrowLength,arrowWidth/2));
-        arr.push(new Point(-maxLength+arrowLength,connectorThroat/2));
-        arr.push(new Point(-connectorThroat/2,connectorThroat/2));
+        arr.push(PointPool.instance.borrow(-maxLength+arrowLength,-connectorThroat/2));
+        arr.push(PointPool.instance.borrow(-maxLength+arrowLength,-arrowWidth/2));
+        arr.push(PointPool.instance.borrow(-maxLength,0));
+        arr.push(PointPool.instance.borrow(-maxLength+arrowLength,arrowWidth/2));
+        arr.push(PointPool.instance.borrow(-maxLength+arrowLength,connectorThroat/2));
+        arr.push(PointPool.instance.borrow(-connectorThroat/2,connectorThroat/2));
 
     }
 
@@ -171,6 +224,7 @@ class DragMarker extends Handle
     {
         var c:Point = bounds.getCentre();
         this.setPosition(c.x,c.y);
+        PointPool.instance.returnPoint(c);
     }
 
 }
@@ -327,7 +381,7 @@ class Bounds
         var w = this.getWidth();
         var h = this.getHeight();
 
-        return new Point(this.left+(w/2),this.top+(h/2));
+        return PointPool.instance.borrow(this.left+(w/2),this.top+(h/2));
     }
 }
 
@@ -336,10 +390,23 @@ class Point
     x:number;
     y:number;
 
+    //For object pooling
+    next:Point;
+
     constructor(x:number = 0, y:number=0)
     {
         this.x = x;
         this.y = y;
+    }
+
+    setNext(p:Point)
+    {
+        this.next = p;
+    }
+
+    getNext():Point
+    {
+        return this.next;
     }
 }
 
@@ -387,9 +454,11 @@ class ImageCropper
     canvasWidth:number;
     canvasHeight:number;
     vertSquashRatio:number;
+    pointPool:PointPool;
 
     constructor(canvas,x:number = 0, y:number = 0, width:number = 100, height:number = 50, keepAspect:boolean = true, touchRadius:number = 20)
     {
+        this.pointPool = new PointPool(200);
         CropService.init(canvas);
         this.buffer = document.createElement('canvas');
         this.cropCanvas = document.createElement('canvas');
@@ -574,7 +643,7 @@ class ImageCropper
                 {
                     iX = ax-(100/this.aspectRatio);
                     iY = ay-(100/this.aspectRatio*this.aspectRatio);
-                    fold = this.getSide(new Point(iX,iY),anchorMarker.getPosition(), new Point(x,y));
+                    fold = this.getSide(PointPool.instance.borrow(iX,iY),anchorMarker.getPosition(), PointPool.instance.borrow(x,y));
 
                     if(fold >0)
                     {
@@ -598,7 +667,7 @@ class ImageCropper
                 {
                     iX = ax-(100/this.aspectRatio);
                     iY = ay+(100/this.aspectRatio*this.aspectRatio);
-                    fold = this.getSide(new Point(iX,iY),anchorMarker.getPosition(), new Point(x,y));
+                    fold = this.getSide(PointPool.instance.borrow(iX,iY),anchorMarker.getPosition(), PointPool.instance.borrow(x,y));
 
                     if(fold >0)
                     {
@@ -624,7 +693,7 @@ class ImageCropper
                 {
                     iX = ax+(100/this.aspectRatio);
                     iY = ay-(100/this.aspectRatio*this.aspectRatio);
-                    fold = this.getSide(new Point(iX,iY),anchorMarker.getPosition(), new Point(x,y));
+                    fold = this.getSide(PointPool.instance.borrow(iX,iY),anchorMarker.getPosition(), PointPool.instance.borrow(x,y));
 
                     if(fold <0)
                     {
@@ -647,7 +716,7 @@ class ImageCropper
                 {
                     iX = ax+(100/this.aspectRatio);
                     iY = ay+(100/this.aspectRatio*this.aspectRatio);
-                    fold = this.getSide(new Point(iX,iY),anchorMarker.getPosition(), new Point(x,y));
+                    fold = this.getSide(PointPool.instance.borrow(iX,iY),anchorMarker.getPosition(), PointPool.instance.borrow(x,y));
 
                     if(fold <0)
                     {
@@ -679,7 +748,11 @@ class ImageCropper
 
     getSide(a:Point,b:Point,c:Point):number
     {
-        return this.sign((b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x));
+        var n = this.sign((b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x));
+        //TODO move the return of the pools to outside of this function
+        PointPool.instance.returnPoint(a);
+        PointPool.instance.returnPoint(c);
+        return n;
     }
 
     sign(x):number
@@ -720,9 +793,10 @@ class ImageCropper
             {
 
                 var dragTouch = this.currentDragTouches[k];
-                var clampedPositions = this.clampPosition(newCropTouch.x-dragTouch.dragHandle.offset.x,newCropTouch.y-dragTouch.dragHandle.offset.y);
+                var clampedPositions:Point = this.clampPosition(newCropTouch.x-dragTouch.dragHandle.offset.x,newCropTouch.y-dragTouch.dragHandle.offset.y);
                 newCropTouch.x = clampedPositions.x;
                 newCropTouch.y = clampedPositions.y;
+                PointPool.instance.returnPoint(clampedPositions);
 
                 if(dragTouch.dragHandle instanceof CornerMarker)
                 {
@@ -737,8 +811,6 @@ class ImageCropper
                 break;
             }
         }
-
-        //TODO NO MATCHES THUS IS A NEW TOUCH
 
         if(!matched)
         {
@@ -826,7 +898,7 @@ class ImageCropper
                 y = this.maxYClamp;
             }
 
-        return new Point(x,y);
+        return PointPool.instance.borrow(x,y);
     }
 
     isImageSet():boolean
@@ -869,16 +941,20 @@ class ImageCropper
         var cX = this.canvas.width / 2;
         var cY = this.canvas.height / 2;
 
-        var tlPos:Point = new Point(cX - cropBounds.getWidth() / 2, cY + cropBounds.getHeight() / 2);
-        var trPos:Point = new Point(cX + cropBounds.getWidth() / 2, cY + cropBounds.getHeight() / 2);
-
-        var blPos:Point = new Point(cX - cropBounds.getWidth() / 2, cY - cropBounds.getHeight() / 2);
-        var brPos:Point = new Point(cX + cropBounds.getWidth() / 2, cY - cropBounds.getHeight() / 2);
+        var tlPos:Point = PointPool.instance.borrow(cX - cropBounds.getWidth() / 2, cY + cropBounds.getHeight() / 2);
+        var trPos:Point = PointPool.instance.borrow(cX + cropBounds.getWidth() / 2, cY + cropBounds.getHeight() / 2);
+        var blPos:Point = PointPool.instance.borrow(cX - cropBounds.getWidth() / 2, cY - cropBounds.getHeight() / 2);
+        var brPos:Point = PointPool.instance.borrow(cX + cropBounds.getWidth() / 2, cY - cropBounds.getHeight() / 2);
 
         this.tl.setPosition(tlPos.x,tlPos.y);
         this.tr.setPosition(trPos.x,trPos.y);
         this.bl.setPosition(blPos.x,blPos.y);
         this.br.setPosition(brPos.x,brPos.y);
+
+        PointPool.instance.returnPoint(tlPos);
+        PointPool.instance.returnPoint(trPos);
+        PointPool.instance.returnPoint(blPos);
+        PointPool.instance.returnPoint(brPos);
 
         this.center.setPosition(cX,cY);
 
@@ -890,15 +966,20 @@ class ImageCropper
             {
                 var cropW = imageH/cropAspect;
 
-                tlPos = new Point(cX - cropW / 2, cY + imageH / 2);
-                trPos = new Point(cX + cropW / 2, cY + imageH / 2);
-                blPos = new Point(cX - cropW / 2, cY - imageH / 2);
-                brPos = new Point(cX + cropW / 2, cY - imageH / 2);
+                tlPos = PointPool.instance.borrow(cX - cropW / 2, cY + imageH / 2);
+                trPos = PointPool.instance.borrow(cX + cropW / 2, cY + imageH / 2);
+                blPos = PointPool.instance.borrow(cX - cropW / 2, cY - imageH / 2);
+                brPos = PointPool.instance.borrow(cX + cropW / 2, cY - imageH / 2);
 
                 this.tl.setPosition(tlPos.x,tlPos.y);
                 this.tr.setPosition(trPos.x,trPos.y);
                 this.bl.setPosition(blPos.x,blPos.y);
                 this.br.setPosition(brPos.x,brPos.y);
+
+                PointPool.instance.returnPoint(tlPos);
+                PointPool.instance.returnPoint(trPos);
+                PointPool.instance.returnPoint(blPos);
+                PointPool.instance.returnPoint(brPos);
             }
         }
         else if(cropAspect < sourceAspect)
@@ -909,15 +990,20 @@ class ImageCropper
             {
                 var cropH = imageW*cropAspect;
 
-                tlPos = new Point(cX-imageW/2,cY+cropH/2);
-                trPos = new Point(cX+imageW/2,cY+cropH/2);
-                blPos = new Point(cX-imageW/2,cY-cropH/2);
-                brPos = new Point(cX+imageW/2,cY-cropH/2);
+                tlPos = PointPool.instance.borrow(cX-imageW/2,cY+cropH/2);
+                trPos = PointPool.instance.borrow(cX+imageW/2,cY+cropH/2);
+                blPos = PointPool.instance.borrow(cX-imageW/2,cY-cropH/2);
+                brPos = PointPool.instance.borrow(cX+imageW/2,cY-cropH/2);
 
                 this.tl.setPosition(tlPos.x,tlPos.y);
                 this.tr.setPosition(trPos.x,trPos.y);
                 this.bl.setPosition(blPos.x,blPos.y);
                 this.br.setPosition(brPos.x,brPos.y);
+
+                PointPool.instance.returnPoint(tlPos);
+                PointPool.instance.returnPoint(trPos);
+                PointPool.instance.returnPoint(blPos);
+                PointPool.instance.returnPoint(brPos);
             }
         }
 
@@ -1050,13 +1136,13 @@ class ImageCropper
     getMousePos(canvas, evt:MouseEvent)
     {
         var rect = canvas.getBoundingClientRect();
-        return new Point(evt.clientX - rect.left, evt.clientY - rect.top);
+        return PointPool.instance.borrow(evt.clientX - rect.left, evt.clientY - rect.top);
     }
 
     getTouchPos(canvas, touch:Touch)
     {
         var rect = canvas.getBoundingClientRect();
-        return new Point(touch.clientX - rect.left, touch.clientY - rect.top);
+        return PointPool.instance.borrow(touch.clientX - rect.left, touch.clientY - rect.top);
     }
 
     onTouchMove(e:TouchEvent)
@@ -1069,6 +1155,7 @@ class ImageCropper
                 var touch:Touch = e.touches[i];
                 var touchPosition:Point = this.getTouchPos(this.canvas,touch);
                 var cropTouch = new CropTouch(touchPosition.x,touchPosition.y,touch.identifier);
+                PointPool.instance.returnPoint(touchPosition);
                 this.move(cropTouch,e);
             }
         }
@@ -1091,6 +1178,8 @@ class ImageCropper
         {
             dragTouch = new CropTouch(mousePosition.x,mousePosition.y,0);
         }
+
+        PointPool.instance.returnPoint(mousePosition);
         this.drawCursors(dragTouch, e);
         this.draw(this.ctx);
     }
@@ -1130,7 +1219,7 @@ class ImageCropper
             }
 
             if (cropTouch.dragHandle != null && cropTouch.dragHandle instanceof CornerMarker) {
-                this.drawCornerCursor(<CornerMarker>cropTouch.dragHandle, cropTouch.x, cropTouch.y, e);
+                this.drawCornerCursor(<CornerMarker>cropTouch.dragHandle, cropTouch.dragHandle.getPosition().x, cropTouch.dragHandle.getPosition().y, e);
                 cursorDrawn = true;
             }
         }
@@ -1226,12 +1315,15 @@ class ImageCropper
             var touch:Touch = e.changedTouches[i];
             var dragTouch:CropTouch = this.getDragTouchForID(touch.identifier);
 
-            if(dragTouch.dragHandle instanceof CornerMarker || dragTouch.dragHandle instanceof DragMarker)
+            if (dragTouch != null)
             {
-                dragTouch.dragHandle.setOver(false);
-            }
+                if (dragTouch.dragHandle instanceof CornerMarker || dragTouch.dragHandle instanceof DragMarker)
+                {
+                    dragTouch.dragHandle.setOver(false);
+                }
 
-            this.handleRelease(dragTouch);
+                this.handleRelease(dragTouch);
+            }
         }
 
         if(this.currentDragTouches.length==0)
