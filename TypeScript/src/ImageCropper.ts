@@ -879,10 +879,10 @@ class ImageCropper
     {
         var h = this.canvas.height-(this.minYClamp*2);
         var bounds:Bounds = this.getBounds();
-        bounds.top = h-bounds.top+this.minYClamp;
-        bounds.bottom = h-bounds.bottom+this.minYClamp;
-        bounds.left-=this.minXClamp;
-        bounds.right-=this.minXClamp;
+        bounds.top = Math.round(h-bounds.top+this.minYClamp);
+        bounds.bottom = Math.round(h-bounds.bottom+this.minYClamp);
+        bounds.left=Math.round(bounds.left-this.minXClamp);
+        bounds.right=Math.round(bounds.right-this.minXClamp);
 
         return bounds;
     }
