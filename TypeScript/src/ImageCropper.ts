@@ -875,6 +875,18 @@ class ImageCropper
             this.maxYClamp = this.canvas.height/2+h/2;
     }
 
+    getCropBounds():Bounds
+    {
+        var h = this.canvas.height-(this.minYClamp*2);
+        var bounds:Bounds = this.getBounds();
+        bounds.top = h-bounds.top+this.minYClamp;
+        bounds.bottom = h-bounds.bottom+this.minYClamp;
+        bounds.left-=this.minXClamp;
+        bounds.right-=this.minXClamp;
+
+        return bounds;
+    }
+
     clampPosition(x:number,y:number):Point
     {
 
@@ -1133,6 +1145,7 @@ class ImageCropper
         return bounds;
     }
 
+
     getMousePos(canvas, evt:MouseEvent)
     {
         var rect = canvas.getBoundingClientRect();
@@ -1326,7 +1339,7 @@ class ImageCropper
             }
         }
 
-        if(this.currentDragTouches.length==0)
+        if(this.currentDragTouches.length===0)
         {
             this.isMouseDown = false;
         }
@@ -1336,7 +1349,7 @@ class ImageCropper
     {
         this.handleRelease(new CropTouch(0,0,0));
 
-        if(this.currentDragTouches.length==0)
+        if(this.currentDragTouches.length===0)
         {
             this.isMouseDown = false;
         }

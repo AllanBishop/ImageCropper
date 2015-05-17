@@ -618,6 +618,15 @@ var ImageCropper = (function () {
         this.maxXClamp = this.canvas.width / 2 + w / 2;
         this.maxYClamp = this.canvas.height / 2 + h / 2;
     };
+    ImageCropper.prototype.getCropBounds = function () {
+        var h = this.canvas.height - (this.minYClamp * 2);
+        var bounds = this.getBounds();
+        bounds.top = h - bounds.top + this.minYClamp;
+        bounds.bottom = h - bounds.bottom + this.minYClamp;
+        bounds.left -= this.minXClamp;
+        bounds.right -= this.minXClamp;
+        return bounds;
+    };
     ImageCropper.prototype.clampPosition = function (x, y) {
         if (x < this.minXClamp) {
             x = this.minXClamp;
@@ -913,13 +922,13 @@ var ImageCropper = (function () {
                 this.handleRelease(dragTouch);
             }
         }
-        if (this.currentDragTouches.length == 0) {
+        if (this.currentDragTouches.length === 0) {
             this.isMouseDown = false;
         }
     };
     ImageCropper.prototype.onMouseUp = function (e) {
         this.handleRelease(new CropTouch(0, 0, 0));
-        if (this.currentDragTouches.length == 0) {
+        if (this.currentDragTouches.length === 0) {
             this.isMouseDown = false;
         }
     };
