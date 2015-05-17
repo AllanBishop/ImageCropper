@@ -67,6 +67,10 @@ Set the image for the image cropper.
 
 Checks to see if an image has been set.
 
+### getCropBounds():Bounds
+
+Returns the bounds (left, right, top, bottom) of the crop area relative to the original source image.
+
 ## Example code
 
 
