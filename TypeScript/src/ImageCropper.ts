@@ -1227,7 +1227,7 @@ class ImageCropper
         {
 
             if (cropTouch.dragHandle == this.center) {
-                this.canvas.style.cursor = 'move';
+                document.body.style.cursor = 'move';
                 cursorDrawn = true;
             }
 
@@ -1249,15 +1249,14 @@ class ImageCropper
 
             if(!didDraw)
             {
-                var el:HTMLElement = <HTMLElement>e.target;
-                el.style.cursor = 'initial';
+                document.body.style.cursor = 'initial';
             }
         }
 
         if (!didDraw && !cursorDrawn && this.center.touchInBounds(cropTouch.x, cropTouch.y))
         {
             this.center.setOver(true);
-            this.canvas.style.cursor = 'move';
+            document.body.style.cursor = 'move';
         }
         else
         {
@@ -1267,8 +1266,6 @@ class ImageCropper
 
     drawCornerCursor(marker:CornerMarker, x:number, y:number, e:Event)
     {
-        var el:HTMLElement;
-
         if (marker.touchInBounds(x, y))
         {
             marker.setOver(true);
@@ -1279,13 +1276,11 @@ class ImageCropper
                 if(marker.getVerticalNeighbour().getPosition().y >
                     marker.getPosition().y)
                 {
-                    el = <HTMLElement>e.target;
-                    el.style.cursor = 'nwse-resize';
+                    document.body.style.cursor = 'nwse-resize';
                 }
                 else
                 {
-                    el = <HTMLElement>e.target;
-                    el.style.cursor = 'nesw-resize';
+                    document.body.style.cursor = 'nesw-resize';
                 }
             }
             else
@@ -1293,13 +1288,11 @@ class ImageCropper
                 if(marker.getVerticalNeighbour().getPosition().y >
                     marker.getPosition().y)
                 {
-                    el = <HTMLElement>e.target;
-                    el.style.cursor = 'nesw-resize';
+                    document.body.style.cursor = 'nesw-resize';
                 }
                 else
                 {
-                    el = <HTMLElement>e.target;
-                    el.style.cursor = 'nwse-resize';
+                    document.body.style.cursor  = 'nwse-resize';
                 }
             }
 

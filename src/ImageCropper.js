@@ -850,7 +850,7 @@ var ImageCropper = (function () {
         var cursorDrawn = false;
         if (cropTouch != null) {
             if (cropTouch.dragHandle == this.center) {
-                this.canvas.style.cursor = 'move';
+                document.body.style.cursor = 'move';
                 cursorDrawn = true;
             }
             if (cropTouch.dragHandle != null && cropTouch.dragHandle instanceof CornerMarker) {
@@ -864,40 +864,34 @@ var ImageCropper = (function () {
                 didDraw = didDraw || this.drawCornerCursor(this.markers[i], cropTouch.x, cropTouch.y, e);
             }
             if (!didDraw) {
-                var el = e.target;
-                el.style.cursor = 'initial';
+                document.body.style.cursor = 'initial';
             }
         }
         if (!didDraw && !cursorDrawn && this.center.touchInBounds(cropTouch.x, cropTouch.y)) {
             this.center.setOver(true);
-            this.canvas.style.cursor = 'move';
+            document.body.style.cursor = 'move';
         }
         else {
             this.center.setOver(false);
         }
     };
     ImageCropper.prototype.drawCornerCursor = function (marker, x, y, e) {
-        var el;
         if (marker.touchInBounds(x, y)) {
             marker.setOver(true);
             if (marker.getHorizontalNeighbour().getPosition().x > marker.getPosition().x) {
                 if (marker.getVerticalNeighbour().getPosition().y > marker.getPosition().y) {
-                    el = e.target;
-                    el.style.cursor = 'nwse-resize';
+                    document.body.style.cursor = 'nwse-resize';
                 }
                 else {
-                    el = e.target;
-                    el.style.cursor = 'nesw-resize';
+                    document.body.style.cursor = 'nesw-resize';
                 }
             }
             else {
                 if (marker.getVerticalNeighbour().getPosition().y > marker.getPosition().y) {
-                    el = e.target;
-                    el.style.cursor = 'nesw-resize';
+                    document.body.style.cursor = 'nesw-resize';
                 }
                 else {
-                    el = e.target;
-                    el.style.cursor = 'nwse-resize';
+                    document.body.style.cursor = 'nwse-resize';
                 }
             }
             return true;
