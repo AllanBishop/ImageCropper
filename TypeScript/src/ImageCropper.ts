@@ -368,12 +368,12 @@ class Bounds
 
     getWidth():number
     {
-        return this.right-this.left;
+        return Math.abs(this.right-this.left);
     }
 
     getHeight():number
     {
-        return this.bottom-this.top;
+        return Math.abs(this.bottom-this.top);
     }
 
     getCentre():Point
@@ -1065,22 +1065,9 @@ class ImageCropper
             var offsetH = (this.buffer.height- h)/2/this.ratioH;
             var offsetW = (this.buffer.width-w)/2/this.ratioW;
 
-            var boundsMultiWidth = 1;
-            var boundsMultiHeight = 1;
-
-            if(this.ratioW<1)
-            {
-                boundsMultiWidth= this.ratioW;
-            }
-
-            if(this.ratioH <1)
-            {
-                boundsMultiHeight = this.ratioH;
-            }
-
             this.drawImageIOSFix(this.cropCanvas.getContext('2d'),this.srcImage,Math.max(Math.round((bounds.left)/this.ratioW-offsetW),0),
-                Math.max(Math.round(bounds.top/this.ratioH-offsetH),0), Math.max(Math.round(bounds.getWidth()/boundsMultiWidth),1),
-                Math.max(Math.round(bounds.getHeight()/boundsMultiHeight),1),0, 0, fillWidth,fillHeight);
+                Math.max(Math.round(bounds.top/this.ratioH-offsetH),0), Math.max(Math.round(bounds.getWidth()/this.ratioW),1),
+                Math.max(Math.round(bounds.getHeight()/this.ratioH),1),0, 0, fillWidth,fillHeight);
 
             this.croppedImage.width = fillWidth;
             this.croppedImage.height = fillHeight;
@@ -1088,7 +1075,6 @@ class ImageCropper
         }
         else
         {
-
             this.cropCanvas.width = Math.max(bounds.getWidth(),1);
             this.cropCanvas.height = Math.max(bounds.getHeight(),1);
 

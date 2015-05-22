@@ -264,10 +264,10 @@ var Bounds = (function () {
         this.bottom = y + height;
     }
     Bounds.prototype.getWidth = function () {
-        return this.right - this.left;
+        return Math.abs(this.right - this.left);
     };
     Bounds.prototype.getHeight = function () {
-        return this.bottom - this.top;
+        return Math.abs(this.bottom - this.top);
     };
     Bounds.prototype.getCentre = function () {
         var w = this.getWidth();
@@ -751,12 +751,8 @@ var ImageCropper = (function () {
             var offsetW = (this.buffer.width - w) / 2 / this.ratioW;
             var boundsMultiWidth = 1;
             var boundsMultiHeight = 1;
-            if (this.ratioW < 1) {
-                boundsMultiWidth = this.ratioW;
-            }
-            if (this.ratioH < 1) {
-                boundsMultiHeight = this.ratioH;
-            }
+            boundsMultiWidth = this.ratioW;
+            boundsMultiHeight = this.ratioH;
             this.drawImageIOSFix(this.cropCanvas.getContext('2d'), this.srcImage, Math.max(Math.round((bounds.left) / this.ratioW - offsetW), 0), Math.max(Math.round(bounds.top / this.ratioH - offsetH), 0), Math.max(Math.round(bounds.getWidth() / boundsMultiWidth), 1), Math.max(Math.round(bounds.getHeight() / boundsMultiHeight), 1), 0, 0, fillWidth, fillHeight);
             this.croppedImage.width = fillWidth;
             this.croppedImage.height = fillHeight;
