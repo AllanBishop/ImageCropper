@@ -345,6 +345,7 @@ var ImageCropper = (function () {
         this.aspectRatio = height / width;
         this.draw(this.ctx);
         this.croppedImage = new Image();
+        this.currentlyInteracting = false;
         window.addEventListener('mousemove', this.onMouseMove.bind(this));
         window.addEventListener('mouseup', this.onMouseUp.bind(this));
         canvas.addEventListener('mousedown', this.onMouseDown.bind(this));
@@ -571,6 +572,7 @@ var ImageCropper = (function () {
                 else {
                     this.dragCrop(newCropTouch.x, newCropTouch.y, dragTouch.dragHandle);
                 }
+                this.currentlyInteracting = true;
                 matched = true;
                 break;
             }
@@ -749,11 +751,7 @@ var ImageCropper = (function () {
             this.cropCanvas.height = fillHeight;
             var offsetH = (this.buffer.height - h) / 2 / this.ratioH;
             var offsetW = (this.buffer.width - w) / 2 / this.ratioW;
-            var boundsMultiWidth = 1;
-            var boundsMultiHeight = 1;
-            boundsMultiWidth = this.ratioW;
-            boundsMultiHeight = this.ratioH;
-            this.drawImageIOSFix(this.cropCanvas.getContext('2d'), this.srcImage, Math.max(Math.round((bounds.left) / this.ratioW - offsetW), 0), Math.max(Math.round(bounds.top / this.ratioH - offsetH), 0), Math.max(Math.round(bounds.getWidth() / boundsMultiWidth), 1), Math.max(Math.round(bounds.getHeight() / boundsMultiHeight), 1), 0, 0, fillWidth, fillHeight);
+            this.drawImageIOSFix(this.cropCanvas.getContext('2d'), this.srcImage, Math.max(Math.round((bounds.left) / this.ratioW - offsetW), 0), Math.max(Math.round(bounds.top / this.ratioH - offsetH), 0), Math.max(Math.round(bounds.getWidth() / this.ratioW), 1), Math.max(Math.round(bounds.getHeight() / this.ratioH), 1), 0, 0, fillWidth, fillHeight);
             this.croppedImage.width = fillWidth;
             this.croppedImage.height = fillHeight;
         }
@@ -914,10 +912,12 @@ var ImageCropper = (function () {
         }
         if (this.currentDragTouches.length === 0) {
             this.isMouseDown = false;
+            this.currentlyInteracting = false;
         }
     };
     ImageCropper.prototype.onMouseUp = function (e) {
         this.handleRelease(new CropTouch(0, 0, 0));
+        this.currentlyInteracting = false;
         if (this.currentDragTouches.length === 0) {
             this.isMouseDown = false;
         }

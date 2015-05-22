@@ -455,6 +455,7 @@ class ImageCropper
     canvasHeight:number;
     vertSquashRatio:number;
     pointPool:PointPool;
+    currentlyInteracting:boolean;
 
     constructor(canvas,x:number = 0, y:number = 0, width:number = 100, height:number = 50, keepAspect:boolean = true, touchRadius:number = 20)
     {
@@ -490,7 +491,7 @@ class ImageCropper
 
         this.draw(this.ctx);
         this.croppedImage = new Image();
-
+        this.currentlyInteracting = false;
         window.addEventListener('mousemove',  this.onMouseMove.bind(this));
         window.addEventListener('mouseup', this.onMouseUp.bind(this)) ;
         canvas.addEventListener('mousedown', this.onMouseDown.bind(this)) ;
@@ -806,7 +807,7 @@ class ImageCropper
                 {
                     this.dragCrop(newCropTouch.x,newCropTouch.y,<DragMarker>dragTouch.dragHandle )
                 }
-
+                this.currentlyInteracting = true;
                 matched = true;
                 break;
             }
@@ -1321,13 +1322,14 @@ class ImageCropper
         if(this.currentDragTouches.length===0)
         {
             this.isMouseDown = false;
+            this.currentlyInteracting = false;
         }
     }
 
     onMouseUp(e:MouseEvent)
     {
         this.handleRelease(new CropTouch(0,0,0));
-
+        this.currentlyInteracting = false;
         if(this.currentDragTouches.length===0)
         {
             this.isMouseDown = false;

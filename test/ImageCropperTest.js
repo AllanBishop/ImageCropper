@@ -33,7 +33,7 @@ window.onload = function () {
     window.addEventListener('touchend', preview);
 };
 function preview() {
-    if (crop.isImageSet()) {
+    if (crop.isImageSet() && crop.currentlyInteracting) {
         var img = crop.getCroppedImage(400, 200);
         img.onload = (function () { return previewLoaded(img); });
     }
