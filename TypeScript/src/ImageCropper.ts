@@ -1147,41 +1147,41 @@ class ImageCropper
 
     onTouchMove(e:TouchEvent)
     {
-        e.preventDefault();
-        if(e.touches.length>=1)
-        {
-            for(var i =0; i< e.touches.length;i++)
-            {
-                var touch:Touch = e.touches[i];
-                var touchPosition:Point = this.getTouchPos(this.canvas,touch);
-                var cropTouch = new CropTouch(touchPosition.x,touchPosition.y,touch.identifier);
-                PointPool.instance.returnPoint(touchPosition);
-                this.move(cropTouch,e);
+        if(this.isImageSet()) {
+            e.preventDefault();
+            if (e.touches.length >= 1) {
+                for (var i = 0; i < e.touches.length; i++) {
+                    var touch:Touch = e.touches[i];
+                    var touchPosition:Point = this.getTouchPos(this.canvas, touch);
+                    var cropTouch = new CropTouch(touchPosition.x, touchPosition.y, touch.identifier);
+                    PointPool.instance.returnPoint(touchPosition);
+                    this.move(cropTouch, e);
+                }
             }
-        }
 
-        this.draw(this.ctx);
+            this.draw(this.ctx);
+        }
     }
 
     onMouseMove(e:MouseEvent)
     {
-        var mousePosition:Point = this.getMousePos(this.canvas, e);
+        if(this.isImageSet()) {
+            var mousePosition:Point = this.getMousePos(this.canvas, e);
 
-        this.move(new CropTouch(mousePosition.x,mousePosition.y,0),e);
-        var dragTouch:CropTouch = this.getDragTouchForID(0);
-        if(dragTouch)
-        {
-            dragTouch.x = mousePosition.x;
-            dragTouch.y = mousePosition.y;
-        }
-        else
-        {
-            dragTouch = new CropTouch(mousePosition.x,mousePosition.y,0);
-        }
+            this.move(new CropTouch(mousePosition.x, mousePosition.y, 0), e);
+            var dragTouch:CropTouch = this.getDragTouchForID(0);
+            if (dragTouch) {
+                dragTouch.x = mousePosition.x;
+                dragTouch.y = mousePosition.y;
+            }
+            else {
+                dragTouch = new CropTouch(mousePosition.x, mousePosition.y, 0);
+            }
 
-        PointPool.instance.returnPoint(mousePosition);
-        this.drawCursors(dragTouch, e);
-        this.draw(this.ctx);
+            PointPool.instance.returnPoint(mousePosition);
+            this.drawCursors(dragTouch, e);
+            this.draw(this.ctx);
+        }
     }
 
     move(cropTouch:CropTouch, e:Event)
@@ -1293,46 +1293,49 @@ class ImageCropper
 
     onMouseDown(e:MouseEvent)
     {
-        this.isMouseDown = true;
+        if(this.isImageSet()) {
+            this.isMouseDown = true;
+        }
     }
 
     onTouchStart(e:TouchEvent)
     {
-        this.isMouseDown = true;
+        if(this.isImageSet()) {
+            this.isMouseDown = true;
+        }
     }
 
     onTouchEnd(e:TouchEvent)
     {
-        for(var i =0; i< e.changedTouches.length;i++)
-        {
-            var touch:Touch = e.changedTouches[i];
-            var dragTouch:CropTouch = this.getDragTouchForID(touch.identifier);
+        if(this.isImageSet()) {
+            for (var i = 0; i < e.changedTouches.length; i++) {
+                var touch:Touch = e.changedTouches[i];
+                var dragTouch:CropTouch = this.getDragTouchForID(touch.identifier);
 
-            if (dragTouch != null)
-            {
-                if (dragTouch.dragHandle instanceof CornerMarker || dragTouch.dragHandle instanceof DragMarker)
-                {
-                    dragTouch.dragHandle.setOver(false);
+                if (dragTouch != null) {
+                    if (dragTouch.dragHandle instanceof CornerMarker || dragTouch.dragHandle instanceof DragMarker) {
+                        dragTouch.dragHandle.setOver(false);
+                    }
+
+                    this.handleRelease(dragTouch);
                 }
-
-                this.handleRelease(dragTouch);
             }
-        }
 
-        if(this.currentDragTouches.length===0)
-        {
-            this.isMouseDown = false;
-            this.currentlyInteracting = false;
+            if (this.currentDragTouches.length === 0) {
+                this.isMouseDown = false;
+                this.currentlyInteracting = false;
+            }
         }
     }
 
     onMouseUp(e:MouseEvent)
     {
-        this.handleRelease(new CropTouch(0,0,0));
-        this.currentlyInteracting = false;
-        if(this.currentDragTouches.length===0)
-        {
-            this.isMouseDown = false;
+        if(this.isImageSet()) {
+            this.handleRelease(new CropTouch(0, 0, 0));
+            this.currentlyInteracting = false;
+            if (this.currentDragTouches.length === 0) {
+                this.isMouseDown = false;
+            }
         }
 
     }
