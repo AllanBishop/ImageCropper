@@ -765,6 +765,38 @@ var ImageCropper = (function () {
         this.croppedImage.src = this.cropCanvas.toDataURL("image/" + this.fileType);
         return this.croppedImage;
     };
+    ImageCropper.prototype.setBounds = function (bounds) {
+        var topLeft;
+        var topRight;
+        var bottomLeft;
+        var bottomRight;
+        var currentBounds = this.getBounds();
+        for (var i = 0; i < this.markers.length; i++) {
+            var marker = this.markers[i];
+            if (marker.getPosition().x == currentBounds.left) {
+                if (marker.getPosition().y == currentBounds.top) {
+                    topLeft = marker;
+                }
+                else {
+                    bottomLeft = marker;
+                }
+            }
+            else {
+                if (marker.getPosition().y == currentBounds.top) {
+                    topRight = marker;
+                }
+                else {
+                    bottomRight = marker;
+                }
+            }
+        }
+        topLeft.setPosition(bounds.left, bounds.top);
+        topRight.setPosition(bounds.right, bounds.top);
+        bottomLeft.setPosition(bounds.left, bounds.bottom);
+        bottomRight.setPosition(bounds.right, bounds.bottom);
+        this.center.recalculatePosition(bounds);
+        this.center.draw(this.ctx);
+    };
     ImageCropper.prototype.getBounds = function () {
         var minX = Number.MAX_VALUE;
         var minY = Number.MAX_VALUE;
